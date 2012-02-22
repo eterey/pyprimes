@@ -211,7 +211,7 @@ import random
 
 
 # Module metadata.
-__version__ = "0.1"
+__version__ = "0.1.1a"
 __date__ = "2012-02-22"
 __author__ = "Steven D'Aprano"
 __author_email__ = "steve+python@pearwood.info"
