@@ -825,24 +825,39 @@ def primesums():
 # Primality testing
 # =================
 
-# Set this to a true value to have isprime(n) warn if the result is
-# probabilistic; set it to a false value to skip the warning.
-warn_probably = True
+def isprime(n, trials=25, warn=False):
+    """Return True if n is a prime number, and False if it is not.
 
+    >>> isprime(101)
+    True
+    >>> isprime(102)
+    False
 
-def isprime(n):
-    """isprime(n) -> True|False
+    ==========  =======================================================
+    Argument    Description
+    ==========  =======================================================
+    n           Number being tested for primality.
+    trials      Count of primality tests to perform (default 25).
+    warn        If true, warn on inexact results. (Default is false.)
+    ==========  =======================================================
 
-    Returns True if integer n is prime number, otherwise return False.
+    For values of ``n`` under approximately 341 trillion, this function is
+    exact and the arguments ``trials`` and ``warn`` are ignored.
 
-    For n less than approximately 341 trillion, ``isprime(n)`` is exact. Above
-    that value, it is probabilistic with a vanishingly small chance of wrongly
-    reporting a composite number as being prime. (It will never report a prime
-    as composite.) The probability of a false positive is less than 1/10**24,
-    or fewer than 1 time in a million trillion trillion tests.
+    Above this cut-off value, this function may be probabilistic with a small
+    chance of wrongly reporting a composite (non-prime) number as prime. Such
+    composite numbers wrongly reported as prime are "false positive" errors.
 
-    If the global variable ``warn_probably`` is true (the default), isprime
-    will raise a warning when n is probably prime rather than certainly prime.
+    The argument ``trials`` controls  the risk of a false positive error. The
+    larger number of trials, the less the chance of an error (and the slower
+    the function). With the default value of 25, you can expect roughly one
+    such error every million trillion tests, which in practical terms is
+    essentially "never".
+
+    ``isprime`` cannot give a false negative error: if it reports a number is
+    composite, it is certainly composite, but if it reports a number is prime,
+    it may be only probably prime. If you pass a true value for argument
+    ``warn``, then a warning will be raised if the result is probabilistic.
     """
     _validate_int(n)
     # Deal with trivial cases first.
@@ -854,28 +869,30 @@ def isprime(n):
         return False
     elif n <= 7:  # 3, 5, 7
         return True
-    bases = _choose_bases(n)
-    flag = miller_rabin(n, bases)
-    if flag and len(bases) > 7 and warn_probably:
+    is_probabilistic, bases = _choose_bases(n, trials)
+    is_prime = miller_rabin(n, bases)
+    if is_prime and is_probabilistic and warn:
         import warnings
         warnings.warn("number is only probably prime not certainly prime")
-    return flag
+    return is_prime
 
 
-def _choose_bases(n):
+def _choose_bases(n, count):
     """Choose appropriate bases for the Miller-Rabin primality test.
 
     If n is small enough, returns a tuple of bases which are provably
-    deterministic for that n. If n is too large, return a mostly random
-    selection of bases such that the chances of an error is less than
-    1/4**40 = 8.2e-25.
+    deterministic for that n. If n is too large, return a selection of
+    possibly random bases.
+
+    With k distinct Miller-Rabin tests, the probability of a false
+    positive result is no more than 1/(4**k).
     """
     # The Miller-Rabin test is deterministic and completely accurate for
     # moderate sizes of n using a surprisingly tiny number of tests.
     # See: Pomerance, Selfridge and Wagstaff (1980), and Jaeschke (1993)
     # http://en.wikipedia.org/wiki/Miller%E2%80%93Rabin_primality_test
-    if n < 1373653:  # Blah, it's too hard to read big ints at a glance.
-        # ~1.3 million
+    prob = False
+    if n < 1373653:  # ~1.3 million
         bases = (2, 3)
     elif n < 9080191:  # ~9.0 million
         bases = (31, 73)
@@ -889,16 +906,18 @@ def _choose_bases(n):
     elif n < 341550071728321:  # ~341 trillion
         bases = (2, 3, 5, 7, 11, 13, 17)
     else:
-        # n is too large, so we have to use a probabilistic test. There's no
-        # harm in trying some of the lower values for base first.
-        bases = (2, 3, 5, 7, 11, 13, 17) + tuple(
-                    [random.randint(18, n-1) for _ in range(40)]
-                    )
+        # n is sufficiently large that we have to use a probabilistic test.
+        prob = True
+        bases = tuple([random.randint(2, n-1) for _ in range(count)])
+        # FIXME Because bases are chosen at random, there may be duplicates
+        # although with extremely small probability given the size of n.
+        # FIXME Is it worthwhile to special case some of the lower, easier
+        # bases? bases = [2, 3, 5, 7, 11, 13, 17] + [random... ]?
         # Note: we can always be deterministic, no matter how large N is, by
         # exhaustive testing against each i in the inclusive range
         # 1 ... min(n-1, floor(2*(ln N)**2)). We don't do this, because it is
         # expensive for large N, and of no real practical benefit.
-    return bases
+    return prob, bases
 
 
 def isprime_division(n):
