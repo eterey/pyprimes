@@ -185,20 +185,6 @@ than the preferred ``primes()`` generator.
        generators is aliased as ``primes()``.
 
 
-These generators however are extremely slow, and should be considered as
-examples of algorithms which should *not* be used, supplied as a horrible
-warning of how *not* to calculate primes.
-
-    --------------  --------------------------------------------------------
-    Function            Description
-    --------------  --------------------------------------------------------
-    awful_primes    Yield primes very slowly by an awful algorithm.
-    naive_primes1   Yield primes slowly by a naive algorithm.
-    naive_primes2   Yield primes slowly by a less naive algorithm.
-    trial_division  Yield primes slowly using trial division.
-    turner          Yield primes very slowly using Turner's algorithm.
-    --------------  --------------------------------------------------------
-
 """
 
 
@@ -209,10 +195,12 @@ import functools
 import itertools
 import random
 
+from re import match as _re_match
+
 
 # Module metadata.
-__version__ = "0.1.1a"
-__date__ = "2012-02-22"
+__version__ = "0.1.2a"
+__date__ = "2012-08-25"
 __author__ = "Steven D'Aprano"
 __author_email__ = "steve+python@pearwood.info"
 
@@ -472,111 +460,203 @@ primes = croft
 
 # === Algorithms to avoid ===
 
-# The following algorithms are supplied for educational purposes, as toys,
-# curios, or as terrible warnings on what NOT to use.
-#
-# None of these have acceptable performance; they are barely tolerable even
-# for the first 100 primes.
+class Awful:
+    """Awful and naive prime functions namespace.
 
-def awful_primes():
-    """Generate prime numbers naively, and REALLY slowly.
+    A collection of prime-related algorithms which are supplied for
+    educational purposes, as toys, curios, or as terrible warnings on
+    what **not** to do.
 
-    This is about as awful as you can get while still being a straight-forward
-    and unobfuscated implementation. What makes this particularly awful is
-    that it doesn't stop testing for factors when it finds one, but
-    pointlessly keeps testing.
+    None of these methods have acceptable performance; they are barely
+    tolerable even for the first 100 primes.
     """
-    i = 2
-    yield i
-    while True:
-        i += 1
-        composite = False
-        for p in range(2, i):
-            if i%p == 0:
-                composite = True
-        if not composite:  # It must be a prime.
-            yield i
 
+    # === Prime number generators ===
 
-def naive_primes1():
-    """Generate prime numbers naively and slowly.
+    @staticmethod
+    def naive_primes1():
+        """Generate prime numbers naively, and REALLY slowly.
 
-    This is a bit better than awful_primes, as it short-circuits testing for
-    composites. If it finds a single factor, it stops testing. Nevertheless,
-    this is still terribly slow.
-    """
-    i = 2
-    yield i
-    while True:
-        i += 1
-        if all(i%p != 0 for p in range(2, i)):
-            yield i
+        >>> p = Awful.naive_primes1()
+        >>> [next(p) for _ in range(10)]
+        [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
 
+        This is about as awful as a straight-forward algorithm to generate
+        primes can get without deliberate pessimation. This algorithm does
+        not make even the most trivial optimizations:
 
-def naive_primes2():
-    """Generate prime numbers naively and slowly.
+        - it tests all numbers as potential primes, whether odd or even,
+          instead of skipping even numbers apart from 2;
+        - it checks for primality by dividing against every number less
+          than the candidate prime itself, instead of stopping at the
+          square root of the candidate;
+        - it fails to bail out early when it finds a factor, instead
+          pointlessly keeps testing.
 
-    This is an incremental improvement over ``naive_primes1``, by only testing
-    for odd factors.
-    """
-    yield 2
-    i = 3
-    yield i
-    while True:
-        i += 2
-        if all(i%p != 0 for p in range(3, i, 2)):
-            yield i
+        The result is that this is horribly slow.
+        """
+        i = 2
+        yield i
+        while True:
+            i += 1
+            composite = False
+            for p in range(2, i):
+                if i%p == 0:
+                    composite = True
+            if not composite:  # It must be a prime.
+                yield i
 
+    @staticmethod
+    def naive_primes2():
+        """Generate prime numbers naively, and very slowly.
 
-def trial_division():
-    """Generate prime numbers slowly using a simple trial division algorithm.
+        >>> p = Awful.naive_primes2()
+        >>> [next(p) for _ in range(10)]
+        [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
 
-    This uses three optimizations: we only test odd numbers for primality,
-    we only test with prime factors, and that only up to the square root of
-    the number being tested. This gives us asymptotic behaviour of
-    O(N*sqrt(N)/(log N)**2) where N is the number of primes found.
+        This is a little better than ``naive_primes1``, but still horribly
+        slow. It makes a single optimization by using a short-circuit test
+        for primality testing: as soon as a factor is found, the candidate
+        is rejected immediately.
+        """
+        i = 2
+        yield i
+        while True:
+            i += 1
+            if all(i%p != 0 for p in range(2, i)):
+                yield i
 
-    Despite these optimizations, this is still unacceptably slow, especially
-    as the list of memorised primes grows.
-    """
-    yield 2
-    primes = [2]
-    i = 3
-    while 1:
-        it = itertools.takewhile(lambda p, i=i: p*p <= i, primes)
-        if all(i%p != 0 for p in it):
-            primes.append(i)
-            yield i
-        i += 2
+    @staticmethod
+    def naive_primes3():
+        """Generate prime numbers naively, and very slowly.
 
+        >>> p = Awful.naive_primes3()
+        >>> [next(p) for _ in range(10)]
+        [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
 
-def turner():
-    """Yield prime numbers very slowly using Euler's sieve.
+        This is an incremental improvement over ``naive_primes2`` by only
+        testing odd numbers as potential primes and factors.
+        """
+        yield 2
+        i = 3
+        yield i
+        while True:
+            i += 2
+            if all(i%p != 0 for p in range(3, i, 2)):
+                yield i
 
-    The function is named for David Turner, who developed this implementation
-    in a paper in 1975. Due to its simplicity, it has become very popular,
-    particularly in Haskell circles where it is usually implemented as some
-    variation of:
+    @staticmethod
+    def trial_division():
+        """Generate prime numbers using a simple trial division algorithm.
 
-        primes = sieve [2..]
-        sieve (p : xs) = p : sieve [x | x <- xs, x `mod` p > 0]
+        >>> p = Awful.trial_division()
+        >>> [next(p) for _ in range(10)]
+        [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
 
-    This algorithm is often wrongly described as the Sieve of Eratosthenes,
-    but it is not. Although simple, it is slow and inefficient, with
-    asymptotic behaviour of O(N**2/(log N)**2), which is even worse than
-    trial_division, and only marginally better than naive_primes. O'Neill
-    calls this the "Sleight on Eratosthenes".
-    """
-    # References:
-    #   http://en.wikipedia.org/wiki/Sieve_of_Eratosthenes
-    #   http://en.literateprograms.org/Sieve_of_Eratosthenes_(Haskell)
-    #   http://www.cs.hmc.edu/~oneill/papers/Sieve-JFP.pdf
-    #   http://www.haskell.org/haskellwiki/Prime_numbers
-    nums = itertools.count(2)
-    while True:
-        prime = next(nums)
-        yield prime
-        nums = filter(lambda v, p=prime: (v % p) != 0, nums)
+        This is the first non-naive algorithm. Due to its simplicity, it may
+        perform acceptably for the first hundred or so primes, if your needs
+        are not very demanding. However, it does not scale well for large
+        numbers of primes.
+
+        This uses three optimizations:
+
+        - only test odd numbers for primality;
+        - only check against the prime factors already seen;
+        - stop checking at the square root of the number being tested.
+
+        With these three optimizations, we get asymptotic behaviour of
+        O(N*sqrt(N)/(log N)**2) where N is the number of primes found.
+
+        Despite these , this is still unacceptably slow, especially
+        as the list of memorised primes grows.
+        """
+        yield 2
+        primes = [2]
+        i = 3
+        while True:
+            it = itertools.takewhile(lambda p, i=i: p*p <= i, primes)
+            if all(i%p != 0 for p in it):
+                primes.append(i)
+                yield i
+            i += 2
+
+    @staticmethod
+    def turner():
+        """Generate prime numbers very slowly using Euler's sieve.
+
+        >>> p = Awful.turner()
+        >>> [next(p) for _ in range(10)]
+        [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
+
+        The function is named for David Turner, who developed this implementation
+        in a paper in 1975. Due to its simplicity, it has become very popular,
+        particularly in Haskell circles where it is usually implemented as some
+        variation of::
+
+            primes = sieve [2..]
+            sieve (p : xs) = p : sieve [x | x <- xs, x `mod` p > 0]
+
+        This algorithm is sometimes wrongly described as the Sieve of
+        Eratosthenes, but it is not, it is a version of Euler's Sieve.
+
+        Although simple, it is extremely slow and inefficient, with
+        asymptotic behaviour of O(N**2/(log N)**2) which is even worse than
+        trial division, and only marginally better than ``naive_primes1``.
+        O'Neill calls this the "Sleight on Eratosthenes".
+        """
+        # References:
+        #   http://en.wikipedia.org/wiki/Sieve_of_Eratosthenes
+        #   http://en.literateprograms.org/Sieve_of_Eratosthenes_(Haskell)
+        #   http://www.cs.hmc.edu/~oneill/papers/Sieve-JFP.pdf
+        #   http://www.haskell.org/haskellwiki/Prime_numbers
+        nums = itertools.count(2)
+        while True:
+            prime = next(nums)
+            yield prime
+            nums = filter(lambda v, p=prime: (v % p) != 0, nums)
+
+    # === Prime number testing ===
+
+    @staticmethod
+    def isprime_naive(n):
+        """Naive primality test using naive and unoptimized trial division.
+
+        >>> Awful.isprime_naive(17)
+        True
+        >>> Awful.isprime_naive(18)
+        False
+
+        Naive, slow but thorough test for primality using unoptimized trial
+        division. This function does far too much work, and consequently is very
+        slow, but it is simple enough to verify by eye.
+        """
+        _validate_int(n)
+        if n == 2:  return True
+        if n < 2 or n % 2 == 0:  return False
+        for i in range(3, int(n**0.5)+1, 2):
+            if n % i == 0:
+                return False
+        return True
+
+    @staticmethod
+    def isprime_regex(n):
+        """Slow primality test using a regular expression.
+
+        >>> Awful.isprime_regex(11)
+        True
+        >>> Awful.isprime_regex(15)
+        False
+
+        Unsurprisingly, this is not efficient, and should be treated as a
+        novelty rather than a serious implementation. It is O(N^2) in time
+        and O(N) in memory: in other words, slow and expensive.
+        """
+        _validate_int(n)
+        return not _re_match(r'^1?$|^(11+?)\1+$', '1'*n)
+        # For a Perl or Ruby version of this, see here:
+        # http://montreal.pm.org/tech/neil_kandalgaonkar.shtml
+        # http://www.noulakaz.net/weblog/2007/03/18/a-regular-expression-to-check-for-prime-numbers/
+
 
 
 # =====================
@@ -821,28 +901,6 @@ def _choose_bases(n):
     return bases
 
 
-def isprime_naive(n):
-    """Naive test for primes. Returns True if int n is prime, otherwise False.
-
-    >>> isprime_naive(7)
-    True
-    >>> isprime_naive(8)
-    False
-
-    Naive, slow but thorough test for primality using unoptimized trial
-    division. This function does far too much work, and consequently is very
-    slow, but it is simple enough to verify by eye and can be used to check
-    the results of faster algorithms. (At least for very small n.)
-    """
-    _validate_int(n)
-    if n == 2:  return True
-    if n < 2 or n % 2 == 0:  return False
-    for i in range(3, int(n**0.5)+1, 2):
-        if n % i == 0:
-            return False
-    return True
-
-
 def isprime_division(n):
     """isprime_division(integer) -> True|False
 
@@ -864,24 +922,6 @@ def isprime_division(n):
         if divisor > limit: break
         if n % divisor == 0: return False
     return True
-
-
-from re import match as _re_match
-
-def isprime_regex(n):
-    """isprime_regex(n) -> True|False
-
-    Astonishingly, you can test whether a number is prime using a regex.
-    It goes without saying that this is not efficient, and should be treated
-    as a novelty rather than a serious implementation. It is O(N^2) in time
-    and O(N) in memory: in other words, slow and expensive.
-    """
-    _validate_int(n)
-    return not _re_match(r'^1?$|^(11+?)\1+$', '1'*n)
-    # For a Perl version, see here:
-    #   http://montreal.pm.org/tech/neil_kandalgaonkar.shtml
-    # And for a Ruby version, here:
-    #   http://www.noulakaz.net/weblog/2007/03/18/a-regular-expression-to-check-for-prime-numbers/
 
 
 # === Probabilistic primality tests ===

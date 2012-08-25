@@ -3,6 +3,10 @@
 =====================================================================
 
 
+Version 0.1.2a   2012-08-25
+    * Move "awful" and naive algorithms into their own namespace.
+    * Improve documentation for such awful algorithms.
+
 Version 0.1.1a   2012-02-22
     * Work around mbcs bug in distutils: see issue 10945 on the Python
       bug tracker http://bugs.python.org/issue10945
