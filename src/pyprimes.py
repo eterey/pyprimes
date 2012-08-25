@@ -281,7 +281,7 @@ except ImportError:
 
 def _validate_int(obj):
     """Raise an exception if obj is not an integer."""
-    m = int(obj + 0)  # May raise TypeError.
+    m = int(obj + 0)  # May raise TypeError, or OverflowError.
     if obj != m:
         raise ValueError('expected an integer but got %r' % obj)
 
@@ -332,7 +332,7 @@ def erat(n):
     """
     _validate_int(n)
     # Generate a fixed array of integers.
-    arr = list(range(n+1))
+    arr = list(range(n+1))  # A list is faster than an array
     # Cross out 0 and 1 since they aren't prime.
     arr[0] = arr[1] = None
     i = 2

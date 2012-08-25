@@ -8,6 +8,16 @@ here = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(here, 'src'))
 from pyprimes import __version__, __author__, __author_email__
 
+# Work around mbcs bug in distutils.
+# http://bugs.python.org/issue10945
+import codecs
+try:
+    codecs.lookup('mbcs')
+except LookupError:
+    ascii = codecs.lookup('ascii')
+    func = lambda name, enc=ascii: {True: enc}.get(name=='mbcs')
+    codecs.register(func)
+
 
 setup(
     name = "pyprimes",
@@ -35,9 +45,9 @@ Features of ``pyprimes``:
       Croft Spiral, and Wheel Factorisation.
     - Test whether numbers are prime efficiently.
     - Deterministic and probabilistic primality tests.
-    - Examples of what *not* to do provided, including trial
-      division, Turner's algorithm, and primality testing
-      using a regular expression.
+    - Examples of what *not* to do provided, including naive trial
+      division, Turner's algorithm, and primality testing using a 
+      regular expression.
     - Factorise numbers into the product of prime factors.
     - Suitable for Python 2.5 through 3.2 from one code base.
 

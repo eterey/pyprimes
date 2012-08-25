@@ -4,7 +4,9 @@
 
 
 Version 0.1.1a   2012-02-22
-    * Fixed minor issues with the setup script and metadata. 
+    * Work around mbcs bug in distutils: see issue 10945 on the Python
+      bug tracker http://bugs.python.org/issue10945
+    * Fixed other minor issues with the setup script and metadata.
     * Neglected to update this changelog, sigh.
 
 Version 0.1.0    2012-02-22
