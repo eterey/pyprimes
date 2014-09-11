@@ -199,8 +199,8 @@ from re import match as _re_match
 
 
 # Module metadata.
-__version__ = "0.1.2a"
-__date__ = "2012-08-25"
+__version__ = "0.1.3a"
+__date__ = "2014-09-11"
 __author__ = "Steven D'Aprano"
 __author_email__ = "steve+python@pearwood.info"
 
