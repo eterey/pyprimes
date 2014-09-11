@@ -268,7 +268,10 @@ except ImportError:
 # =====================
 
 def _validate_int(obj):
-    """Raise an exception if obj is not an integer."""
+    """Raise an exception if obj is not an exact integer-valued number.
+
+    Integral-valued floats strictly between plus and minus 2**53 are allowed.
+    ."""
     m = int(obj + 0)  # May raise TypeError, or OverflowError.
     if obj != m:
         raise ValueError('expected an integer but got %r' % obj)
@@ -627,8 +630,8 @@ class Awful:
         False
 
         Naive, slow but thorough test for primality using unoptimized trial
-        division. This function does far too much work, and consequently is very
-        slow, but it is simple enough to verify by eye.
+        division. This function does far too much work, and consequently is
+        very slow.
         """
         _validate_int(n)
         if n == 2:  return True
@@ -648,7 +651,7 @@ class Awful:
         False
 
         Unsurprisingly, this is not efficient, and should be treated as a
-        novelty rather than a serious implementation. It is O(N^2) in time
+        novelty rather than a serious implementation. It is O(N**2) in time
         and O(N) in memory: in other words, slow and expensive.
         """
         _validate_int(n)
@@ -662,6 +665,24 @@ class Awful:
 # =====================
 # Convenience functions
 # =====================
+
+def primes2(start=0, end=None, gen=primes):
+    """Yield primes between start and end using the given prime generator.
+
+    >>> list(primes2(115, 155))
+    [127, 131, 137, 139, 149, 151]
+
+    """
+    primes = gen()
+    # Consume the primes below start as fast as possible.
+    p = next(primes)
+    while p < start:
+        p = next(primes)
+    # Then yield until end.
+    while (end is None) or (p < end):
+        yield p
+        p = next(primes)
+
 
 def checked_ints():
     """Yield tuples (isprime(i), i) for integers i=0, 1, 2, 3, 4, ...
@@ -819,6 +840,28 @@ def primesums():
     for p in primes():
         n += p
         yield n
+
+
+def next_prime(n):
+    """Return the first prime number strictly greater than n.
+
+    >>> next_prime(97)
+    101
+
+    For sufficiently large n, over approximately 341 trillion, this is
+    probabilistic rather than guaranteed.
+    """
+    _validate_int(n)
+    if n < 2:
+        return 2
+    elif n % 2:  # Odd numbers.
+        n += 2
+    else:  # Even numbers.
+        n += 1
+    # The average gap between prime number P and the next prime is log P.
+    while not isprime(n):  # NOTE: isprime better be fast!
+        n += 2
+    return n
 
 
 # =================
