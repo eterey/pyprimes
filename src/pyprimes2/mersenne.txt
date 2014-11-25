@@ -1,0 +1,64 @@
+Mersenne primes are prime numbers of the form:
+
+
+M[n] = 2**n - 1
+
+where M[n] represents M subscript n. If n is composite, so is 2**n - 1,
+and so the definition is unchanged if written as:
+
+M[p] = 2**p - 1
+
+where p is prime.
+
+As of May 2014, there are 48 known Mersenne primes, including the largest
+known prime number:
+
+No.  Prime  Digits  Discovered  Download
+  48  M57885161  17,425,170  2013
+  47  243112609-1  12978189  12-Apr-2008  ZIP  RAR
+  46  242643801-1  12837064  06-Sep-2009  ZIP  RAR
+  45  237156667-1  11185272  23-Aug-2008  ZIP  RAR
+  44  232582657-1  9808358  4-Sep-2006  ZIP
+  43  230402457-1  9152052  15-Dec-2005  ZIP  RAR
+  42  225964951-1  7816230  26-Feb-2005  ZIP  RAR
+  41  224036583-1  7235733  28-May-2004  ZIP
+  40  220996011-1  6320430  17-Nov-2003  ZIP  RAR
+  39  213466917-1  4053946  14-Nov-2001  ZIP  RAR
+  38  26972593-1  2098960  1-Jun-1999  ZIP  RAR
+  37  23021377-1  909526  27-Jan-1998  ZIP  RAR
+  36  22976221-1  895832  24-Aug-1997  ZIP  RAR
+  35  21398269-1  420921  12-Nov-1996  TXT  ZIP  RAR
+  34  21257787-1  378632  3-Sep-1996  TXT  ZIP  RAR
+  33  2859433-1  258716  10-Jan-1994  TXT  ZIP  RAR
+  32  2756839-1  227832  19-Feb-1992  TXT  ZIP  RAR
+  31  2216091-1  65050  6-Sep-1985  TXT  ZIP  RAR
+  30  2132049-1  39751  20-Sep-1983  TXT  ZIP  RAR
+  29  2110503-1  33265  28-Jan-1988  TXT
+  28  286243-1  25962  25-Sep-1982  TXT
+  27  244497-1  13395  8-Apr-1979  TXT
+  26  223209-1  6987  9-Feb-1979  TXT
+  25  221701-1  6533  30-Oct-1978  TXT
+  24  219937-1  6002  4-Mar-1971  TXT
+  23  211213-1  3376  2-Jun-1963  TXT
+  22  29941-1  2993  16-May-1963  TXT
+  21  29689-1  2917  11-May-1963  TXT
+  20  24423-1  1332  3-Nov-1961  TXT
+  19  24253-1  1281  3-Nov-1961  TXT
+  18  23217-1  969  8-Sep-1957  TXT
+  17  22281-1  687  9-Oct-1952  TXT
+  16  22203-1  664  7-Oct-1952  TXT
+  15  21279-1  386  26-Jun-1952  TXT
+  14  2607-1  183  30-Jan-1952  TXT
+  13  2521-1  157  30-Jan-1952  TXT
+  12  2127-1  39  1876  TXT
+  11  2107-1  33  1914  TXT
+  10  289-1  27  1911  TXT
+  9  261-1  19  1883  TXT
+  8  231-1  10  1772  TXT
+  7  219-1  6  1588  TXT
+  6  217-1  6  1588  TXT
+  5  213-1  4  1456  TXT
+  4  27-1  3  275BC  TXT
+  3  25-1  2  275BC  TXT
+  2  23-1  1  500BC  TXT
+  1  22-1  1  500BC  TXT
