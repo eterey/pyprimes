@@ -6,7 +6,7 @@
 ##  See the file __init__.py for the licence terms for this software.
 
 
-"""Lightweight test suites for the pyprimes package.
+"""Unit test suites for the pyprimes package.
 
 This module is considered a private implementation detail and is subject
 to change without notice.
@@ -59,18 +59,8 @@ PRIMES = [2,   3,   5,   7,   11,  13,  17,  19,  23,  29,
 assert len(PRIMES) == 100
 
 
-def product(values):
-    """Return the product of multiplying all the values.
-
-    >>> product([3, 4, 5, 10])
-    600
-    >>> product([])
-    1
-
-    """
-    return reduce(operator.mul, values, 1)
-
-
+# Skipping tests is only supported in Python 2.7 and up. For older versions,
+# we define a quick and dirty decorator which more-or-less does the same.
 try:
     skip = unittest.skip
 except AttributeError:
@@ -83,7 +73,37 @@ except AttributeError:
         return decorator
 
 
-# Automatically load doctests.
+# === Helper functions ===
+
+try:
+    isgeneratorfunction = inspect.isgeneratorfunction
+except AttributeError:
+    # Python 2.4 through 2.6?
+    def isgeneratorfunction(obj):
+        # Magic copied from inspect.py in Python 2.7.
+        CO_GENERATOR = 0x20
+        if inspect.isfunction(obj):
+            return obj.func_code.co_flags & CO_GENERATOR
+        else:
+            return False
+
+def product(values):
+    """Return the product of multiplying all the values.
+
+    >>> product([3, 4, 5, 10])
+    600
+    >>> product([])
+    1
+
+    """
+    return reduce(operator.mul, values, 1)
+
+
+# === Tests ====
+
+# This is a magic function which automatically loads doctests and
+# creates unit tests from them. It only works in Python 2.7 or better,
+# below that it will be ignored.
 def load_tests(loader, tests, ignore):
     tests.addTests(doctest.DocTestSuite())
     tests.addTests(doctest.DocTestSuite(pyprimes))
@@ -92,6 +112,17 @@ def load_tests(loader, tests, ignore):
     tests.addTests(doctest.DocTestSuite(probabilistic))
     tests.addTests(doctest.DocTestSuite(sieves))
     return tests
+
+
+class TestHelpers(unittest.TestCase):
+    def test_product(self):
+        self.assertEqual(product([2, 2, 7, 11, 31]), 9548)
+
+    def test_isgeneratorfunction(self):
+        self.assertFalse(isgeneratorfunction(None))
+        self.assertFalse(isgeneratorfunction(lambda x: None))
+        def gen(): yield None
+        self.assertTrue(isgeneratorfunction(gen))
 
 
 class PrimesMixin:
@@ -106,7 +137,7 @@ class PrimesMixin:
         for n in composites:
             self.assertFalse(prime_checker(n))
 
-    def check_prime_list(self, prime_maker):
+    def check_against_known_prime_list(self, prime_maker):
         """Check that generator produces the first 100 primes."""
         it = prime_maker()
         primes = [next(it) for _ in range(100)]
@@ -114,14 +145,7 @@ class PrimesMixin:
 
     def check_is_generator(self, func):
         """Check that func is a generator function."""
-        try:
-            isgeneratorfunction = inspect.isgeneratorfunction
-        except AttributeError:
-            CO_GENERATOR = 0x20  # Copied from inspect.py in Python 2.7.
-            self.assertTrue(inspect.isfunction(func))
-            self.assertTrue(func.func_code.co_flags & CO_GENERATOR)
-        else:
-            self.assertTrue(isgeneratorfunction(func))
+        self.assertTrue(isgeneratorfunction(func))
         it = func()
         self.assertTrue(it is iter(it))
         try:
@@ -140,6 +164,7 @@ class TestMetadata(unittest.TestCase):
         # Test that modules define a docstring.
         modules = [pyprimes, awful, factors, sieves, probabilistic]
         if __name__ == '__main__':
+            # Include this test module when being run as the main module.
             import __main__
             modules.append(__main__)
         for module in modules:
@@ -181,10 +206,10 @@ class TestMetadata(unittest.TestCase):
 
 
 class Compat23_Test(unittest.TestCase):
-    """Test suite for the compatibility layer."""
+    """Test suite for the compatibility module."""
 
     def check_returns_iterator(self, func, *args, **kw):
-        """Check that func(*args, **kw) returns an iterator."""
+        """Check that func(*args, **kw) returns an iterator, not a list."""
         obj = func(*args, **kw)
         nm = func.__name__
         self.assertFalse(isinstance(obj, list), "%s returns a list" % nm)
@@ -207,15 +232,18 @@ class Compat23_Test(unittest.TestCase):
 
     def test_filter(self):
         self.check_returns_iterator(compat23.filter, None, [1, 2, 3])
+        result = compat23.filter(lambda x: x > 100, [1, 2, 101, 102, 3, 103])
+        self.assertEqual(list(result), [101, 102, 103])
 
     def test_zip(self):
         self.check_returns_iterator(compat23.zip, "abc", [1, 2, 3])
+        result = compat23.zip("xyz", [10, 11, 12])
+        self.assertEqual(list(result), [('x', 10), ('y', 11), ('z', 12)])
 
     def test_all(self):
-        all = compat23.all
-        self.assertTrue(all([1, 2, 3, 4]))
-        self.assertTrue(all([]))
-        self.assertFalse(all([1, 2, 0, 4]))
+        self.assertTrue(compat23.all([1, 2, 3, 4]))
+        self.assertTrue(compat23.all([]))
+        self.assertFalse(compat23.all([1, 2, 0, 4]))
 
     def test_compress(self):
         self.check_returns_iterator(compat23.compress, "abc", [1, 0, 1])
@@ -241,32 +269,32 @@ class Awful_Test(unittest.TestCase, PrimesMixin):
     def test_primes0(self):
         f = awful.primes0
         self.check_is_generator(f)
-        self.check_prime_list(f)
+        self.check_against_known_prime_list(f)
 
     def test_primes1(self):
         f = awful.primes1
         self.check_is_generator(f)
-        self.check_prime_list(f)
+        self.check_against_known_prime_list(f)
 
     def test_primes2(self):
         f = awful.primes2
         self.check_is_generator(f)
-        self.check_prime_list(f)
+        self.check_against_known_prime_list(f)
 
     def test_primes3(self):
         f = awful.primes3
         self.check_is_generator(f)
-        self.check_prime_list(f)
+        self.check_against_known_prime_list(f)
 
     def test_turner(self):
         f = awful.turner
         self.check_is_generator(f)
-        self.check_prime_list(f)
+        self.check_against_known_prime_list(f)
 
     def test_primes4(self):
         f = awful.primes4
         self.check_is_generator(f)
-        self.check_prime_list(f)
+        self.check_against_known_prime_list(f)
 
 
 class Sieves_Test(unittest.TestCase, PrimesMixin):
@@ -278,6 +306,9 @@ class Sieves_Test(unittest.TestCase, PrimesMixin):
             if p > n:
                 return PRIMES[:i]
         return PRIMES
+
+    def test_erat_returns_list(self):
+        self.assertTrue(isinstance(sieves.erat(10), list))
 
     def test_erat(self):
         for i in range(2, 544):
@@ -291,33 +322,42 @@ class Sieves_Test(unittest.TestCase, PrimesMixin):
     def test_best_sieve(self):
         f = sieves.best_sieve
         self.check_is_generator(f)
-        self.check_prime_list(f)
+        self.check_against_known_prime_list(f)
 
     def test_cookbook(self):
         f = sieves.cookbook
         self.check_is_generator(f)
-        self.check_prime_list(f)
+        self.check_against_known_prime_list(f)
 
     def test_croft(self):
         f = sieves.croft
         self.check_is_generator(f)
-        self.check_prime_list(f)
+        self.check_against_known_prime_list(f)
 
     def test_sieve(self):
         f = sieves.sieve
         self.check_is_generator(f)
-        self.check_prime_list(f)
+        self.check_against_known_prime_list(f)
 
     def test_wheel(self):
         f = sieves.wheel
         self.check_is_generator(f)
-        self.check_prime_list(f)
+        self.check_against_known_prime_list(f)
 
 
 class Fermat_Test(unittest.TestCase, PrimesMixin):
-    """Test the Fermat primality test."""
+    """Test the Fermat primality test function.
+
+    This class is intended to be subclassed for testing other
+    probabilistic primality test functions with the same
+    characteristics as the Fermat test, e.g. Miller-Rabin.
+    """
 
     def get_primality_test(self):
+        """Returns the primality test function to be tested.
+
+        Override this in subclasses.
+        """
         return probabilistic.is_fermat_probable_prime
 
     def test_below_two(self):
@@ -398,10 +438,14 @@ class Is_Probable_Test(unittest.TestCase, PrimesMixin):
             self.assertEqual(probabilistic.is_probable_prime(p), 1)
         # FIXME we should have at least one detailed test case to cover
         # each of the if...elif blocks in the is_probable_prime function.
+        # That involves having detailed knowledge of what blocks are
+        # called with what input arguments.
 
     def test_moderate_composites(self):
         # Test is_probable_prime with moderate-sized composites.
         for i in range(10):
+            # We should not run out of primes here. If we do, it's a bug
+            # in the test.
             p, q = next(self.primes), next(self.primes)
             n = p*q
             assert n < 2**60, "n not in deterministic range for i_p_p"
@@ -411,7 +455,7 @@ class Is_Probable_Test(unittest.TestCase, PrimesMixin):
         # Test the prime generator based on is_probable_prime.
         f = probabilistic.primes
         self.check_is_generator(f)
-        self.check_prime_list(f)
+        self.check_against_known_prime_list(f)
 
 
 class Factors_Test(unittest.TestCase):
@@ -453,7 +497,8 @@ class Factors_Test(unittest.TestCase):
         # Test factorise with _EXTRA_CHECKS.
         if __debug__:
             self.assertTrue(hasattr(factors, '_EXTRA_CHECKS'))
-            # Monkey-patch the factors module.
+            # Monkey-patch the factors module to ensure the extra checks
+            # are exercised.
             save = factors._EXTRA_CHECKS
             factors._EXTRA_CHECKS = True
         else:
@@ -476,7 +521,7 @@ class PyPrimesTest(unittest.TestCase, PrimesMixin):
     def test_primes_basic(self):
         # Basic tests for the prime generator.
         self.check_is_generator(pyprimes.primes)
-        self.check_prime_list(pyprimes.primes)
+        self.check_against_known_prime_list(pyprimes.primes)
 
     def test_primes_start(self):
         # Test the prime generator with start argument only.
@@ -494,14 +539,14 @@ class PyPrimesTest(unittest.TestCase, PrimesMixin):
         self.assertEqual(list(it), expected)
 
     def test_primes_start_is_inclusive(self):
-        # Start argument is inclusive.
+        # Start argument to primes() is inclusive.
         n = 211
         assert pyprimes.is_prime(n)
         it = pyprimes.primes(start=n)
         self.assertEqual(next(it), n)
 
     def test_primes_end_is_exclusive(self):
-        # End argument is exclusive.
+        # End argument to primes() is exclusive.
         n = 211
         assert pyprimes.is_prime(n)
         it = pyprimes.primes(end=n)
@@ -523,6 +568,7 @@ class PyPrimesTest(unittest.TestCase, PrimesMixin):
 
     def test_primes_with_generator(self):
         # Test the prime generator with a custom generator.
+        # These aren't actually primes.
         def gen():
             yield 3; yield 3; yield 5; yield 9; yield 0
         it = pyprimes.primes(gen=gen)
@@ -579,20 +625,6 @@ class PyPrimesTest(unittest.TestCase, PrimesMixin):
         for i, count in enumerate(expected):
             self.assertEqual(pyprimes.prime_count(10**i), count)
 
-    @skip("too slow")
-    def test_prime_count_tens_big(self):
-        # Continued from test_prime_count_tens.
-        self.assertEqual(pyprimes.prime_count(10**7), 664579)
-        self.assertEqual(pyprimes.prime_count(10**8), 5761455)
-
-    @skip("too slow")
-    def test_bertelsen(self):
-        # http://mathworld.wolfram.com/BertelsensNumber.html
-        result = pyprimes.prime_count(10**9)
-        self.assertNotEqual(result, 50847478,
-            "prime_count returns the erronous Bertelsen's Number")
-        self.assertEqual(result, 50847534)
-
     def test_prime_partial_sums(self):
         it = pyprimes.prime_partial_sums()
         self.assertTrue(it is iter(it))
@@ -613,6 +645,34 @@ class PyPrimesTest(unittest.TestCase, PrimesMixin):
             expected = next(it)
             actual = pyprimes.prime_sum(i)
             self.assertEqual(actual, expected)
+
+
+class ExpensiveTests(unittest.TestCase):
+    """Suite containing very expensive tests.
+
+    By default, these tests are not run. To run them, pass:
+
+        --do-expensive-tests
+
+    on the command line.
+
+    BE WARNED THAT THESE TESTS MAY TAKE MANY HOURS TO RUN.
+    """
+    def test_prime_count_tens_big(self):
+        # See also PyPrimesTest.test_prime_count_tens.
+        assert do_expensive_tests
+        self.assertEqual(pyprimes.prime_count(10**7), 664579)
+        self.assertEqual(pyprimes.prime_count(10**8), 5761455)
+
+    def test_bertelsen(self):
+        # http://mathworld.wolfram.com/BertelsensNumber.html
+        assert do_expensive_tests
+        result = pyprimes.prime_count(10**9)
+        self.assertNotEqual(result, 50847478,
+            "prime_count returns the erronous Bertelsen's Number")
+        self.assertEqual(result, 50847534)
+
+
 
 '''
 class TestCheckedInts(unittest.TestCase):
@@ -647,6 +707,16 @@ class TestCheckedOddInts(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    # Hack to support conditional testing versions before Python 2.7.
+    # Since we don't have the ability to skip tests, we instead put all
+    # the skippable tests into one test suite, and delete it before
+    # running the unit tests.
+    do_expensive_tests = '--do-expensive-tests' in sys.argv
+    if do_expensive_tests:
+        # Remove it from sys.argv, otherwise unittest will complain.
+        sys.argv.remove('--do-expensive-tests')
+    else:
+        del ExpensiveTests
     unittest.main()
 
 
