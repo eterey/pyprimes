@@ -9,7 +9,7 @@
 
 import itertools
 
-from pyprimes2.compat23 import compress, next, range
+from pyprimes.compat23 import compress, next, range
 
 __all__ = ['best_sieve', 'cookbook', 'croft', 'erat', 'sieve', 'wheel']
 

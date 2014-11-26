@@ -94,7 +94,7 @@ def factorise(n):
         yield (-1, 1)
         n = -n
     assert n >= 2
-    from pyprimes2 import primes
+    from pyprimes import primes
     for p in primes():
         if p*p > n: break
         count = 0
@@ -107,7 +107,7 @@ def factorise(n):
         if __debug__:
             # The following test only occurs if assertions are on.
             if _EXTRA_CHECKS:
-                from pyprimes2 import is_prime
+                from pyprimes import is_prime
                 assert is_prime(n), ('final factor %d is not prime' % n)
         yield (n, 1)
 

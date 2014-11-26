@@ -28,9 +28,9 @@ from __future__ import division
 import itertools
 import re
 
-from pyprimes2.compat23 import all, filter, next, range
+from pyprimes.compat23 import all, filter, next, range
 
-from pyprimes2.utilities import isqrt
+from pyprimes.utilities import isqrt
 
 
 # === Prime number testing ===

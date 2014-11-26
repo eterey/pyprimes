@@ -163,7 +163,7 @@ from __future__ import division
 import itertools
 import warnings
 
-from pyprimes2.compat23 import next
+from pyprimes.compat23 import next
 
 
 
@@ -210,13 +210,13 @@ def primes(start=0, end=None, gen=None):
     thin wrapper around that generator. No checks are made to ensure
     that ``gen`` actually produces prime numbers.
 
-    >>> from pyprimes2.awful import turner  # Use a slow algorithm.
+    >>> from pyprimes.awful import turner  # Use a slow algorithm.
     >>> list(primes(6, 30, turner))
     [7, 11, 13, 17, 19, 23, 29]
 
     """
     if gen is None:
-        from pyprimes2.sieves import best_sieve as gen
+        from pyprimes.sieves import best_sieve as gen
     primes = gen()
     # Consume the primes below start as fast as possible.
     p = next(primes)
@@ -368,7 +368,7 @@ def is_prime(n, prover=None):
     then the number is certainly composite.
     """
     if prover is None:
-        from pyprimes2.probabilistic import is_probable_prime as prover
+        from pyprimes.probabilistic import is_probable_prime as prover
     flag = prover(n)
     if flag is True or flag is False:
         return flag

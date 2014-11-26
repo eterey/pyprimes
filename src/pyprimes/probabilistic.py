@@ -601,7 +601,7 @@ def primes():
         flag = is_probable_prime(i)
         if flag == 2 and not warned:
             import warnings
-            from pyprimes2 import MaybeComposite
+            from pyprimes import MaybeComposite
             warnings.warn("values are now only probably prime", MaybeComposite)
             warned = True
         if flag:

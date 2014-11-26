@@ -26,11 +26,11 @@ if __name__ == '__main__':
     parent, here = os.path.split(path)
     sys.path.append(parent)
 
-from pyprimes2.compat23 import next
+from pyprimes.compat23 import next
 
-import pyprimes2.awful as awful
-import pyprimes2.probabilistic as probabilistic
-import pyprimes2.sieves as sieves
+import pyprimes.awful as awful
+import pyprimes.probabilistic as probabilistic
+import pyprimes.sieves as sieves
 
 
 

@@ -32,15 +32,15 @@ if __name__ == '__main__':
 
 
 # Modules being tested:
-import pyprimes2
-import pyprimes2.awful as awful
-import pyprimes2.compat23 as compat23
-import pyprimes2.factors as factors
-import pyprimes2.probabilistic as probabilistic
-import pyprimes2.sieves as sieves
+import pyprimes
+import pyprimes.awful as awful
+import pyprimes.compat23 as compat23
+import pyprimes.factors as factors
+import pyprimes.probabilistic as probabilistic
+import pyprimes.sieves as sieves
 
 # Support Python 2.4 on up.
-from pyprimes2.compat23 import next, range, reduce
+from pyprimes.compat23 import next, range, reduce
 
 
 # First 100 primes from here:
@@ -86,7 +86,7 @@ except AttributeError:
 # Automatically load doctests.
 def load_tests(loader, tests, ignore):
     tests.addTests(doctest.DocTestSuite())
-    tests.addTests(doctest.DocTestSuite(pyprimes2))
+    tests.addTests(doctest.DocTestSuite(pyprimes))
     tests.addTests(doctest.DocTestSuite(awful))
     tests.addTests(doctest.DocTestSuite(compat23))
     tests.addTests(doctest.DocTestSuite(probabilistic))
@@ -133,12 +133,12 @@ class PrimesMixin:
 
 
 class TestMetadata(unittest.TestCase):
-    """Check metadata for the pyprimes2 package."""
+    """Check metadata for the pyprimes package."""
     private_message = "private implementation detail"
 
     def test_module_docstrings(self):
         # Test that modules define a docstring.
-        modules = [pyprimes2, awful, factors, sieves, probabilistic]
+        modules = [pyprimes, awful, factors, sieves, probabilistic]
         if __name__ == '__main__':
             import __main__
             modules.append(__main__)
@@ -172,12 +172,12 @@ class TestMetadata(unittest.TestCase):
 
     def test_meta(self):
         # Test the existence of metadata.
-        for module in (pyprimes2, factors, sieves, probabilistic):
+        for module in (pyprimes, factors, sieves, probabilistic):
             self.check_existence_of_metadata(module, ['__all__'])
             self.check_contents_of_all(module)
         additional_metadata = ["__version__", "__date__", "__author__",
                              "__author_email__"]
-        self.check_existence_of_metadata(pyprimes2, additional_metadata)
+        self.check_existence_of_metadata(pyprimes, additional_metadata)
 
 
 class Compat23_Test(unittest.TestCase):
@@ -475,90 +475,90 @@ class PyPrimesTest(unittest.TestCase, PrimesMixin):
 
     def test_primes_basic(self):
         # Basic tests for the prime generator.
-        self.check_is_generator(pyprimes2.primes)
-        self.check_prime_list(pyprimes2.primes)
+        self.check_is_generator(pyprimes.primes)
+        self.check_prime_list(pyprimes.primes)
 
     def test_primes_start(self):
         # Test the prime generator with start argument only.
         expected = [211, 223, 227, 229, 233, 239, 241, 251,
                     257, 263, 269, 271, 277, 281, 283, 293]
         assert len(expected) == 16
-        it = pyprimes2.primes(200)
+        it = pyprimes.primes(200)
         values = [next(it) for _ in range(16)]
         self.assertEqual(values, expected)
 
     def test_primes_end(self):
         # Test the prime generator with end argument only.
         expected = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47]
-        it = pyprimes2.primes(end=50)
+        it = pyprimes.primes(end=50)
         self.assertEqual(list(it), expected)
 
     def test_primes_start_is_inclusive(self):
         # Start argument is inclusive.
         n = 211
-        assert pyprimes2.is_prime(n)
-        it = pyprimes2.primes(start=n)
+        assert pyprimes.is_prime(n)
+        it = pyprimes.primes(start=n)
         self.assertEqual(next(it), n)
 
     def test_primes_end_is_exclusive(self):
         # End argument is exclusive.
         n = 211
-        assert pyprimes2.is_prime(n)
-        it = pyprimes2.primes(end=n)
+        assert pyprimes.is_prime(n)
+        it = pyprimes.primes(end=n)
         values = list(it)
         self.assertEqual(values[-1], 199)
-        assert pyprimes2.next_prime(199) == n
+        assert pyprimes.next_prime(199) == n
 
     def test_primes_end_none(self):
         # Check that None is allowed as an end argument.
-        it = pyprimes2.primes(end=None)
+        it = pyprimes.primes(end=None)
         self.assertEqual(next(it), 2)
 
     def test_primes_start_end(self):
         # Test the prime generator with both start and end arguments.
         expected = [401, 409, 419, 421, 431, 433, 439, 443, 449,
                     457, 461, 463, 467, 479, 487, 491, 499]
-        values = list(pyprimes2.primes(start=400, end=500))
+        values = list(pyprimes.primes(start=400, end=500))
         self.assertEqual(values, expected)
 
     def test_primes_with_generator(self):
         # Test the prime generator with a custom generator.
         def gen():
             yield 3; yield 3; yield 5; yield 9; yield 0
-        it = pyprimes2.primes(gen=gen)
+        it = pyprimes.primes(gen=gen)
         self.assertEqual(list(it), [3, 3, 5, 9, 0])
 
     def test_is_prime(self):
         # Basic tests for is_prime.
-        self.check_primes_are_prime(pyprimes2.is_prime)
-        self.check_composites_are_not_prime(pyprimes2.is_prime)
+        self.check_primes_are_prime(pyprimes.is_prime)
+        self.check_composites_are_not_prime(pyprimes.is_prime)
 
     def test_trial_division(self):
         # Basic tests for trial_division.
-        self.check_primes_are_prime(pyprimes2.trial_division)
-        self.check_composites_are_not_prime(pyprimes2.trial_division)
+        self.check_primes_are_prime(pyprimes.trial_division)
+        self.check_composites_are_not_prime(pyprimes.trial_division)
 
     def test_next_prime(self):
-        self.assertEqual(pyprimes2.next_prime(122949823), 122949829)
-        self.assertEqual(pyprimes2.next_prime(961748927), 961748941)
+        self.assertEqual(pyprimes.next_prime(122949823), 122949829)
+        self.assertEqual(pyprimes.next_prime(961748927), 961748941)
 
     def test_prev_prime(self):
-        self.assertEqual(pyprimes2.prev_prime(122949829), 122949823)
-        self.assertEqual(pyprimes2.prev_prime(961748941), 961748927)
-        self.assertRaises(ValueError, pyprimes2.prev_prime, 2)
+        self.assertEqual(pyprimes.prev_prime(122949829), 122949823)
+        self.assertEqual(pyprimes.prev_prime(961748941), 961748927)
+        self.assertRaises(ValueError, pyprimes.prev_prime, 2)
 
     def test_nprimes(self):
-        it = pyprimes2.nprimes(100)
+        it = pyprimes.nprimes(100)
         self.assertTrue(it is iter(it))
         self.assertEqual(list(it), PRIMES)
 
     def test_nth_primes(self):
-        self.assertEqual(pyprimes2.nth_prime(100), PRIMES[-1])
-        self.assertRaises(ValueError, pyprimes2.nth_prime, 0)
-        self.assertRaises(ValueError, pyprimes2.nth_prime, -1)
+        self.assertEqual(pyprimes.nth_prime(100), PRIMES[-1])
+        self.assertRaises(ValueError, pyprimes.nth_prime, 0)
+        self.assertRaises(ValueError, pyprimes.nth_prime, -1)
 
     def test_prime_count(self):
-        self.assertEqual(pyprimes2.prime_count(PRIMES[-1]), len(PRIMES))
+        self.assertEqual(pyprimes.prime_count(PRIMES[-1]), len(PRIMES))
         # Table of values from http://oeis.org/A000720
         # plus one extra 0 to adjust for Python's 0-based indexing.
         expected = [
@@ -568,7 +568,7 @@ class PyPrimesTest(unittest.TestCase, PrimesMixin):
             16, 16, 16, 16, 17, 17, 18, 18, 18, 18, 18, 18, 19, 19, 19, 19,
             20, 20, 21, 21, 21, 21, 21, 21]
         for i, count in enumerate(expected):
-            self.assertEqual(pyprimes2.prime_count(i), count)
+            self.assertEqual(pyprimes.prime_count(i), count)
 
     def test_prime_count_tens(self):
         # Test prime_count function with powers of ten.
@@ -577,24 +577,24 @@ class PyPrimesTest(unittest.TestCase, PrimesMixin):
         #   http://oeis.org/A006880
         expected = [0, 4, 25, 168, 1229, 9592, 78498]
         for i, count in enumerate(expected):
-            self.assertEqual(pyprimes2.prime_count(10**i), count)
+            self.assertEqual(pyprimes.prime_count(10**i), count)
 
     @skip("too slow")
     def test_prime_count_tens_big(self):
         # Continued from test_prime_count_tens.
-        self.assertEqual(pyprimes2.prime_count(10**7), 664579)
-        self.assertEqual(pyprimes2.prime_count(10**8), 5761455)
+        self.assertEqual(pyprimes.prime_count(10**7), 664579)
+        self.assertEqual(pyprimes.prime_count(10**8), 5761455)
 
     @skip("too slow")
     def test_bertelsen(self):
         # http://mathworld.wolfram.com/BertelsensNumber.html
-        result = pyprimes2.prime_count(10**9)
+        result = pyprimes.prime_count(10**9)
         self.assertNotEqual(result, 50847478,
             "prime_count returns the erronous Bertelsen's Number")
         self.assertEqual(result, 50847534)
 
     def test_prime_partial_sums(self):
-        it = pyprimes2.prime_partial_sums()
+        it = pyprimes.prime_partial_sums()
         self.assertTrue(it is iter(it))
         # Table of values from http://oeis.org/A007504
         expected = [
@@ -608,10 +608,10 @@ class PyPrimesTest(unittest.TestCase, PrimesMixin):
 
     def test_prime_sum(self):
         # Test the prime_sum function by comparing it to prime_partial_sums.
-        it = pyprimes2.prime_partial_sums()
+        it = pyprimes.prime_partial_sums()
         for i in range(100):
             expected = next(it)
-            actual = pyprimes2.prime_sum(i)
+            actual = pyprimes.prime_sum(i)
             self.assertEqual(actual, expected)
 
 '''
