@@ -7,6 +7,75 @@
 
 from __future__ import division
 
+import itertools
+import operator
+
+try:
+    # If it is available, we prefer to use partial for speed.
+    from functools import partial
+except ImportError:
+    partial = None
+
+
+def filter_between(iterable, start=None, end=None):
+    """Yield items from iterable in the range(start, end).
+
+    Returns an iterator from the given iterable, optionally filtering
+    items at the beginning and end. If ``start`` is not None, values are
+    silently dropped from the beginning of the iterator until the first
+    item which equals or exceeds ``start``:
+
+    >>> it = filter_between("aaabbbcdeabcd", start="c")
+    >>> list(it)
+    ['c', 'd', 'e', 'a', 'b', 'c', 'd']
+
+    If ``end`` is not None, the first value which equals or exceeds ``end``
+    halts the iterator:
+
+    >>> it = filter_between("aaabbbcdeabcd", end="c")
+    >>> list(it)
+    ['a', 'a', 'a', 'b', 'b', 'b']
+
+
+
+    . If ``start`` or ``end``
+    are not None, then the iterator silently drops all values until the
+    first value that equals or exceeds ``start``, and halts at the first
+    value that exceeds ``end``. The ``start`` value is inclusive, the
+    ``end`` value is exclusive.
+
+    For example:
+
+    >>> it = filter_between("abcdefgh", start="c", end="g")
+    >>> list(it)
+    ['c', 'd', 'e', 'f']
+
+
+
+    """
+    iterator = iter(iterable)
+    if start is not None:
+        # Drop values strictly less than start.
+        if partial is None:
+            drop = lambda p: p < start  # Bite me, PEP 8.
+        else:
+            # We want to skip over any values "v < start", but since
+            # partial assigns operands from the left, we have to write
+            # that as "start > p".
+            drop = partial(operator.gt, start)
+        iterator = itertools.dropwhile(drop, iterator)
+    if end is not None:
+        # Take values strictly less than end.
+        if partial is None:
+            take = lambda p: p < end  # Bite me, PEP 8.
+        else:
+            # We want to halt at the first value "v >= end", which means
+            # we take values "p < end". Since partial assigns operands
+            # from the left, we write that as "end > p".
+            take = partial(operator.gt, end)
+        iterator = itertools.takewhile(take, iterator)
+    return iterator
+
 
 # Every integer between 0 and MAX_EXACT inclusive
 MAX_EXACT = 9007199254740991

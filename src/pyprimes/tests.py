@@ -38,8 +38,9 @@ import pyprimes.compat23 as compat23
 import pyprimes.factors as factors
 import pyprimes.probabilistic as probabilistic
 import pyprimes.sieves as sieves
+import pyprimes.utilities as utilities
 
-# Support Python 2.4 on up.
+# Support Python 2.4 through 3.x
 from pyprimes.compat23 import next, range, reduce
 
 
@@ -103,14 +104,16 @@ def product(values):
 
 # This is a magic function which automatically loads doctests and
 # creates unit tests from them. It only works in Python 2.7 or better,
-# below that it will be ignored.
+# older versions will ignore it.
 def load_tests(loader, tests, ignore):
     tests.addTests(doctest.DocTestSuite())
     tests.addTests(doctest.DocTestSuite(pyprimes))
     tests.addTests(doctest.DocTestSuite(awful))
     tests.addTests(doctest.DocTestSuite(compat23))
+    tests.addTests(doctest.DocTestSuite(factors))
     tests.addTests(doctest.DocTestSuite(probabilistic))
     tests.addTests(doctest.DocTestSuite(sieves))
+    tests.addTests(doctest.DocTestSuite(utilities))
     return tests
 
 
@@ -571,7 +574,7 @@ class PyPrimesTest(unittest.TestCase, PrimesMixin):
         # These aren't actually primes.
         def gen():
             yield 3; yield 3; yield 5; yield 9; yield 0
-        it = pyprimes.primes(gen=gen)
+        it = pyprimes.primes(strategy=gen)
         self.assertEqual(list(it), [3, 3, 5, 9, 0])
 
     def test_is_prime(self):
@@ -656,7 +659,7 @@ class ExpensiveTests(unittest.TestCase):
 
     on the command line.
 
-    BE WARNED THAT THESE TESTS MAY TAKE MANY HOURS TO RUN.
+    BE WARNED THAT THESE TESTS MAY TAKE MANY HOURS (DAYS?) TO RUN.
     """
     def test_prime_count_tens_big(self):
         # See also PyPrimesTest.test_prime_count_tens.
@@ -671,6 +674,22 @@ class ExpensiveTests(unittest.TestCase):
         self.assertNotEqual(result, 50847478,
             "prime_count returns the erronous Bertelsen's Number")
         self.assertEqual(result, 50847534)
+
+
+class UtilitiesTests(unittest.TestCase):
+    """Test suite for the pyprimes.utilities module."""
+
+    def test_filter_between(self):
+        filter_between = utilities.filter_between
+        values = [1, 2, 3, 4, 3, 3, 2, 5, 6, 7, 8, 9, 0]
+        it = filter_between(values)
+        self.assertEqual(list(it), values)
+        it = filter_between(values, start=4)  # No end.
+        self.assertEqual(list(it), [4, 3, 3, 2, 5, 6, 7, 8, 9, 0])
+        it = filter_between(values, end=6)  # No start.
+        self.assertEqual(list(it), [1, 2, 3, 4, 3, 3, 2, 5])
+        it = filter_between(values, start=3, end=7)  # Both start and end.
+        self.assertEqual(list(it), [3, 4, 3, 3, 2, 5, 6])
 
 
 
