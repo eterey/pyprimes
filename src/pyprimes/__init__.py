@@ -67,15 +67,6 @@ previous, prime from some given value:
     NOTE:: For large prime numbers p, the average distance between p and
            the next (or previous) prime is proportional to ln(p).
 
-The ```xxxxx`` generator produces an unending sequence of True/False
-flags for the integers, starting from zero, yielding True if the integer
-is prime, and False if not prime. To generate tuples (n, primality of n),
-zip the results against the integers:
-
-    >>> pairs = zip(range(5), xxxcharf())
-    >>> list(pairs)
-    [(0, False), (1, False), (2, True), (3, True), (4, False)]
-
 
 Primality testing
 -----------------
@@ -164,7 +155,7 @@ import itertools
 import warnings
 
 from pyprimes.compat23 import next
-
+from pyprimes.utilities import filter_between
 
 
 # Module metadata.
@@ -186,15 +177,14 @@ class MaybeComposite(RuntimeWarning):
 
 # === Prime numbers ===
 
-def primes(start=0, end=None, gen=None):
+def primes(start=None, end=None, strategy=None):
     """Yield primes, optionally between ``start`` and ``end``.
 
-    >>> list(primes(115, 155))
-    [127, 131, 137, 139, 149, 151]
+    If ``start`` or ``end`` arguments are given, they must be integers.
+    Only primes between ``start`` and ``end`` will be yielded:
 
-    If not given, ``start`` defaults to 0 and the first prime yielded will
-    be 2. If not given, ``end`` defaults to None and the generator will
-    yield primes with no upper limit.
+    >>> list(primes(start=115, end=155))
+    [127, 131, 137, 139, 149, 151]
 
     ``start`` is inclusive, and ``end`` is exclusive:
 
@@ -203,30 +193,42 @@ def primes(start=0, end=None, gen=None):
     >>> list(primes(5, 32))
     [5, 7, 11, 13, 17, 19, 23, 29, 31]
 
-    The optional argument ``gen`` is used to specify an alternative
-    prime generator. If ``gen`` is not given or is None, the default
-    implementation is used. Otherwise, ``gen`` must be a generator
-    function which yields prime numbers, and ``primes`` behaves as a
-    thin wrapper around that generator. No checks are made to ensure
-    that ``gen`` actually produces prime numbers.
+    If ``start`` is not given, or is None, there is no lower limit and the
+    first prime yielded will be 2. If ``end`` is not given or is None,
+    there is no upper limit.
+
+    Optional argument ``strategy`` can be used to delegate to alternative
+    implementations. If ``strategy`` is not given, or is None, a default
+    implementation is used. Otherwise, ``strategy`` must be a function
+    which takes no arguments and returns an iterator that yields primes.
+    (A generator function is a convenient way to manage this.)
 
     >>> from pyprimes.awful import turner  # Use a slow algorithm.
     >>> list(primes(6, 30, turner))
     [7, 11, 13, 17, 19, 23, 29]
 
+    No checks are made to ensure that the ``strategy`` iterator actually
+    returns prime numbers.
     """
-    if gen is None:
-        from pyprimes.sieves import best_sieve as gen
-    primes = gen()
-    # Consume the primes below start as fast as possible.
-    p = next(primes)
-    while p < start:
-        p = next(primes)
+    if strategy is None:
+        from pyprimes.sieves import best_sieve as strategy
+    #return filter_between(gen(), start, end)
+    it = strategy()
+    p = next(it)
+    if start is not None:
+        # Drop the primes below start as fast as possible, then yield.
+        while p < start:
+            p = next(it)
+    assert start is None or p >= start
+    if end is not None:
+        while p < end:
+            yield p
+            p = next(it)
+    else:
+        while True:
+            yield p
+            p = next(it)
     # Then yield until end.
-    while (end is None) or (p < end):
-        yield p
-        p = next(primes)
-
 
 def next_prime(n, isprime=None):
     """Return the first prime number strictly greater than n.
@@ -294,42 +296,6 @@ def prev_prime(n, isprime=None):
     return n
 
 
-def xxxcharf():
-    """xxxcharf() -> yield is_prime(n) for all n >= 0
-
-    With the addition of the first term, for n=0, this is equivalent
-    to the characteristic function:
-
-    χ[primes] = 1 if n is prime else 0
-
-    yielding True for primes and False for non-primes:
-
-    >>> it = xxxcharf()
-    >>> [next(it) for _ in range(6)]
-    [False, False, True, True, False, True]
-
-    For brevity, or to match the mathematical definition of the
-    characteristic function, call ``int()`` on the results:
-
-    >>> [int(next(it)) for _ in range(20)]
-    [0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0]
-
-    """
-    # http://oeis.org/A010051
-    # See also: http://mathworld.wolfram.com/PrimeConstant.html
-    for flag in (False, False, True, True):  # n = 0, 1, 2, 3.
-        yield flag
-    it = primes(5)
-    q = 3  # Previously yielded prime number.
-    for p in it:
-        # Process the non-primes between q and p.
-        for _ in range(p - q - 1):
-            yield False
-        # Process the prime.
-        yield True
-        q = p
-
-
 # === Primality testing ===
 
 def is_prime(n, prover=None):
@@ -385,7 +351,7 @@ def is_prime(n, prover=None):
     raise TypeError('expected bool or int but prover returned %r' % flag)
 
 
-def trial_division(n, gen=None):
+def trial_division(n, strategy=None):
     """trial_division(n) -> True|False
 
     By default, an exact but slow primality test using trial division by
@@ -399,7 +365,7 @@ def trial_division(n, gen=None):
 
     For large values of n, this may be slow or run out of memory.
 
-    If given, optional argument ``gen`` should be a generator yielding
+    If given, optional argument ``strategy`` should be a generator yielding
     prime numbers. See the ``primes`` function for further details.
     """
     if n < 2:
@@ -409,7 +375,7 @@ def trial_division(n, gen=None):
     if n % 2 == 0:
         return False
     limit = n**0.5  # FIXME
-    for divisor in primes(gen=gen):
+    for divisor in primes(strategy=strategy):
         if divisor > limit: break
         if n % divisor == 0: return False
     return True
@@ -417,19 +383,19 @@ def trial_division(n, gen=None):
 
 # === Number theory convenience functions ===
 
-def nprimes(n, gen=None):
+def nprimes(n, strategy=None):
     """Convenience function that yields the first n primes only.
 
     >>> list(nprimes(10))
     [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
 
-    If given, optional argument ``gen`` should be a generator yielding
+    If given, optional argument ``strategy`` should be a generator yielding
     prime numbers. See the ``primes`` function for further details.
     """
-    return itertools.islice(primes(gen=gen), n)
+    return itertools.islice(primes(strategy=strategy), n)
 
 
-def nth_prime(n, gen=None):
+def nth_prime(n, strategy=None):
     """nth_prime(n) -> int
 
     Return the nth prime number, starting counting from 1. Equivalent to
@@ -442,16 +408,16 @@ def nth_prime(n, gen=None):
     >>> nth_prime(50)
     229
 
-    If given, optional argument ``gen`` should be a generator yielding
+    If given, optional argument ``strategy`` should be a generator yielding
     prime numbers. See the ``primes`` function for further details.
     """
     # http://oeis.org/A000040
     if n < 1:
         raise ValueError('argument must be a positive integer')
-    return next(itertools.islice(primes(gen=gen), n-1, n))
+    return next(itertools.islice(primes(strategy=strategy), n-1, n))
 
 
-def prime_count(n, gen=None):
+def prime_count(n, strategy=None):
     """prime_count(n) -> int
 
     Returns the number of prime numbers less than or equal to n.
@@ -465,7 +431,7 @@ def prime_count(n, gen=None):
 
     The number of primes less than x is approximately n/(ln n - 1).
 
-    If given, optional argument ``gen`` should be a generator yielding
+    If given, optional argument ``strategy`` should be a generator yielding
     prime numbers. See the ``primes`` function for further details.
     """
     # See also:  http://primes.utm.edu/howmany.shtml
@@ -473,7 +439,7 @@ def prime_count(n, gen=None):
     # http://oeis.org/A000720
     if n < 1:
         return 0
-    return sum(1 for p in primes(end=n+1, gen=gen))
+    return sum(1 for p in primes(end=n+1, strategy=strategy))
 
 """ π(10) == 4
     π(100) == 25
@@ -485,7 +451,7 @@ def prime_count(n, gen=None):
     """
 
 
-def prime_sum(n, gen=None):
+def prime_sum(n, strategy=None):
     """prime_sum(n) -> int
 
     prime_sum(n) returns the sum of the first n primes.
@@ -497,29 +463,29 @@ def prime_sum(n, gen=None):
 
     The sum of the first n primes is approximately n**2*(ln n)/2.
 
-    If given, optional argument ``gen`` should be a generator yielding
+    If given, optional argument ``strategy`` should be a generator yielding
     prime numbers. See the ``primes`` function for further details.
     """
     # See:  http://mathworld.wolfram.com/PrimeSums.html
     # http://oeis.org/A007504
     if n < 1:
         return 0
-    return sum(nprimes(n, gen))
+    return sum(nprimes(n, strategy))
 
 
-def prime_partial_sums(gen=None):
+def prime_partial_sums(strategy=None):
     """Yield the partial sums of the prime numbers.
 
     >>> p = prime_partial_sums()
     >>> [next(p) for _ in range(6)]  # primes 2, 3, 5, 7, 11, ...
     [0, 2, 5, 10, 17, 28]
 
-    If given, optional argument ``gen`` should be a generator yielding
+    If given, optional argument ``strategy`` should be a generator yielding
     prime numbers. See the ``primes`` function for further details.
     """
     # http://oeis.org/A007504
     n = 0
-    for p in primes(gen=gen):
+    for p in primes(strategy=strategy):
         yield n
         n += p
 
