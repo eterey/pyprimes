@@ -67,3 +67,35 @@ def characteristic(start=0, end=None, strategy=None):
             yield False
 
 
+
+'''
+class TestCheckedInts(unittest.TestCase):
+    def testIsIterator(self):
+        it = pyprimes.checked_ints()
+        self.assertTrue(it is iter(it))
+
+    def testValues(self):
+        n = PRIMES[-1] + 2
+        expected = [(True, i) for i in PRIMES]
+        x = set(range(n)).difference(set(PRIMES))
+        expected.extend((False, i) for i in x)
+        expected.sort(key=lambda obj: obj[1])
+        actual = list(itertools.islice(pyprimes.checked_ints(), None, n))
+        self.assertEqual(actual, expected)
+
+
+class TestCheckedOddInts(unittest.TestCase):
+    def testIsIterator(self):
+        it = pyprimes.checked_ints()
+        self.assertTrue(it is iter(it))
+
+    def testValues(self):
+        n = PRIMES[-1] + 2
+        expected = [(True, i) for i in PRIMES[1:]]
+        x = set(range(1, n, 2)).difference(set(PRIMES))
+        expected.extend((False, i) for i in x)
+        expected.sort(key=lambda obj: obj[1])
+        actual = list(itertools.islice(pyprimes.checked_oddints(), None, n))
+        self.assertEqual(actual, expected)
+'''
+

@@ -688,6 +688,7 @@ class ExpensiveTests(unittest.TestCase):
 
 class UtilitiesTests(unittest.TestCase):
     """Test suite for the pyprimes.utilities module."""
+    # FIXME: add tests for isqrt or instrumentation.
 
     def test_filter_between(self):
         filter_between = utilities.filter_between
@@ -701,38 +702,6 @@ class UtilitiesTests(unittest.TestCase):
         it = filter_between(values, start=3, end=7)  # Both start and end.
         self.assertEqual(list(it), [3, 4, 3, 3, 2, 5, 6])
 
-
-
-'''
-class TestCheckedInts(unittest.TestCase):
-    def testIsIterator(self):
-        it = pyprimes.checked_ints()
-        self.assertTrue(it is iter(it))
-
-    def testValues(self):
-        n = PRIMES[-1] + 2
-        expected = [(True, i) for i in PRIMES]
-        x = set(range(n)).difference(set(PRIMES))
-        expected.extend((False, i) for i in x)
-        expected.sort(key=lambda obj: obj[1])
-        actual = list(itertools.islice(pyprimes.checked_ints(), None, n))
-        self.assertEqual(actual, expected)
-
-
-class TestCheckedOddInts(unittest.TestCase):
-    def testIsIterator(self):
-        it = pyprimes.checked_ints()
-        self.assertTrue(it is iter(it))
-
-    def testValues(self):
-        n = PRIMES[-1] + 2
-        expected = [(True, i) for i in PRIMES[1:]]
-        x = set(range(1, n, 2)).difference(set(PRIMES))
-        expected.extend((False, i) for i in x)
-        expected.sort(key=lambda obj: obj[1])
-        actual = list(itertools.islice(pyprimes.checked_oddints(), None, n))
-        self.assertEqual(actual, expected)
-'''
 
 
 if __name__ == '__main__':
