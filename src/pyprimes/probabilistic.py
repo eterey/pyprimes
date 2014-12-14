@@ -69,6 +69,8 @@ from __future__ import division
 
 import random
 
+import pyprimes.utilities
+
 
 __all__ = ['is_probable_prime', 'is_fermat_probable_prime',
            'is_miller_rabin_probable_prime', 'primes',
@@ -176,10 +178,7 @@ class IsProbablePrime(object):
 
     def __init__(self):
         # Allocate instrumentation.
-        self.instrument = {'calls': 0, 'unsure': 0}
-        for method in self._methods:
-            self.instrument[method] = (0, None, 0)  # hits, min, max
-        self.instrument = None
+        self.instrument = pyprimes.utilities.Instrument(self, self._methods)
 
     def _trial_division(self, n):
         """Deterministic but limited primality test using trial division
@@ -359,8 +358,7 @@ class IsProbablePrime(object):
         name, flag = self._check_primality(n)
         instrument = self.instrument
         if instrument is not None:
-            instrument.calls += 1
-            instrument.update(name, n)
+            instrument.update(name, n, flag)
         return flag
 
 

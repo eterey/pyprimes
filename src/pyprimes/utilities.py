@@ -148,8 +148,8 @@ except ImportError:
         return tuple
 
 
-class PerMethodInstrument(object):
-    """Instrumentation for individual sub-methods of ``is_probably_prime``.
+class MethodStats(object):
+    """Statistics for individual methods of ``is_probably_prime``.
 
     Instances are intended to be mapped to a method name in a dict, where
     they record how often the method was able to conclusively determine
@@ -170,7 +170,7 @@ class PerMethodInstrument(object):
             The largest argument that the method has determined
             the primality of the argument.
 
-    E.g. given a mapping ``{"frob": PerMethodInstrument(250, 357, 993)}``,
+    E.g. given a mapping ``{"frob": MethodStats(250, 357, 993)}``,
     that indicates that the method ``frob`` determined the primality of its
     argument 250 times (not necessarily distinct arguments), with the
     smallest such argument being 357 and the largest being 993.
@@ -188,12 +188,12 @@ class PerMethodInstrument(object):
 
     def update(self, value):
         self.hits += 1
-        a, b = self.min, self.max
+        a, b = self.low, self.high
         if a is None: a = value
         else: a = min(a, value)
         if b is None: b = value
         else: b = max(b, value)
-        self.min, self.max = a, b
+        self.low, self.high = a, b
 
 
 class Instrument(object):
@@ -204,7 +204,7 @@ class Instrument(object):
         calls:
             The total number of times the function is successfully called.
 
-        not_prime:
+        notprime:
             The total number of non-prime results returned.
 
         prime:
@@ -213,21 +213,44 @@ class Instrument(object):
         uncertain:
             The total number of possibly prime results returned.
 
-
-
-
     """
-    def __init__(self, methods):
+    def __init__(self, owner, methods):
         self.calls = 0
         self.uncertain = 0
-        self._data = {}
-        self.instrument = {'calls': 0, 'uncertain': 0}
-        for method in self._methods:
-            self.instrument[method] = (0, None, 0)  # hits, min, max
+        self.prime = 0
+        self.notprime = 0
+        self._owner = owner
+        self._stats = {}
+        for function in methods:
+            self._stats[function.__name__] = MethodStats()
+
+    def display(self):
+        """Display a nicely formatted version of the instrumentation."""
+        print(str(self))
 
     def __str__(self):
-        template = "[[ calls: %d; uncertain: %d ]\n %s]"
-        items = sorted(self._data.items())
-        items = ['[ %s: %s ]' % item for item in items]
-        items = '\n '.join(items)
-        return template % (self.calls, self.uncertain, items)
+        template = (
+            'Instrumentation for %s\n'
+            '  - definitely not prime:  %d\n'
+            '  - definitely prime:      %d\n'
+            '  - probably prime:        %d\n'
+            '  - total:                 %d\n'
+            '%s\n'
+            )
+        items = sorted(self._stats.items())
+        items = ['%s: %s' % item for item in items if item[1].hits != 0]
+        items = '\n'.join(items)
+        args = (self._owner, self.notprime, self.prime, self.uncertain, self.calls, items)
+        return template % args
+
+    def update(self, name, n, flag):
+        assert flag in (0, 1, 2)
+        self._stats[name].update(n)
+        self.calls += 1
+        if flag == 0:
+            self.notprime += 1
+        elif flag == 1:
+            self.prime += 1
+        else:
+            self.uncertain += 1
+
