@@ -51,8 +51,8 @@ def factors(n):
     """factors(integer) -> [list of factors]
 
     Returns a list of the (mostly) prime factors of integer n. For negative
-    integers, -1 is included as a factor. If n is 0 or 1, [n] is returned as
-    the only factor. Otherwise all the factors will be prime.
+    integers, -1 is included as a factor. If n is 0, 1 or -1, [n] is
+    returned as the only factor. Otherwise all the factors will be prime.
 
     >>> factors(-693)
     [-1, 3, 3, 7, 11]
