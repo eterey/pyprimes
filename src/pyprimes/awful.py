@@ -92,7 +92,7 @@ def primes0():
       instead of skipping even numbers;
     - it checks for primality by dividing against every number less
       than the candidate, instead of stopping early;
-    - even when it finds a factor, it fails to bail out early.
+    - even when it finds a factor, it stupidly keeps on going.
 
     """
     i = 2
@@ -188,11 +188,12 @@ def primes4():
     generating large numbers of primes.
     """
     yield 2
-    seen = []
+    seen = []  # Odd primes only.
     # Add a few micro-optimizations to shave off a microsecond or two.
     takewhile = itertools.takewhile
     append = seen.append
     all_ = all
+    # And now we search for primes.
     i = 3
     while True:
         it = takewhile(lambda p, i=i: p*p <= i, seen)
