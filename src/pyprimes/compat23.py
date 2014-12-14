@@ -6,7 +6,7 @@
 ##  See the file __init__.py for the licence terms for this software.
 
 
-"""Python 2 and 3 compatibility layer.
+"""Python 2 and 3 compatibility layer for the pyprimes package.
 
 This module is considered a private implementation detail and is subject
 to change without notice.
@@ -26,9 +26,17 @@ try:
     next = builtins.next
 except AttributeError:
     # No next() builtin, so we're probably running Python 2.4 or 2.5.
-    # Use a simplified version (without support for default).
-    def next(iterator):
-        return iterator.next()
+    def next(iterator, *args):
+        if len(args) > 1:
+            n = len(args) + 1
+            raise TypeError("next expected at most 2 arguments, got %d" % n)
+        try:
+            return iterator.next()
+        except StopIteration:
+            if args:
+                return args[0]
+            else:
+                raise
 
 
 try:
@@ -53,6 +61,7 @@ except ImportError:
 try:
     all = builtins.all
 except AttributeError:
+    # Likely Python 2.4.
     def all(iterable):
         for element in iterable:
             if not element:

@@ -219,11 +219,21 @@ class Compat23_Test(unittest.TestCase):
         self.assertTrue(obj is iter(obj))
 
     def test_next(self):
+        # Test basic use of next.
         next = compat23.next
         it = iter([1, 'a'])
         self.assertEqual(next(it), 1)
         self.assertEqual(next(it), 'a')
         self.assertRaises(StopIteration, next, it)
+
+    def test_next_default(self):
+        # Test next with a default argument.
+        next = compat23.next
+        it = iter([2, 'b'])
+        self.assertEqual(next(it, -99), 2)
+        self.assertEqual(next(it, -99), 'b')
+        self.assertEqual(next(it, -99), -99)
+        self.assertRaises(TypeError, next, it, -1, -2)
 
     def test_range(self):
         range = compat23.range
