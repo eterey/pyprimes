@@ -38,6 +38,7 @@ import pyprimes.compat23 as compat23
 import pyprimes.factors as factors
 import pyprimes.probabilistic as probabilistic
 import pyprimes.sieves as sieves
+import pyprimes.strategic as strategic
 import pyprimes.utilities as utilities
 
 # Support Python 2.4 through 3.x
@@ -113,6 +114,7 @@ def load_tests(loader, tests, ignore):
     tests.addTests(doctest.DocTestSuite(factors))
     tests.addTests(doctest.DocTestSuite(probabilistic))
     tests.addTests(doctest.DocTestSuite(sieves))
+    tests.addTests(doctest.DocTestSuite(strategic))
     tests.addTests(doctest.DocTestSuite(utilities))
     return tests
 
@@ -533,8 +535,132 @@ class PyPrimesTest(unittest.TestCase, PrimesMixin):
 
     def test_primes_basic(self):
         # Basic tests for the prime generator.
-        self.check_is_generator(pyprimes.primes)
         self.check_against_known_prime_list(pyprimes.primes)
+
+    def test_primes_start(self):
+        # Test the prime generator with start argument only.
+        expected = [211, 223, 227, 229, 233, 239, 241, 251,
+                    257, 263, 269, 271, 277, 281, 283, 293]
+        assert len(expected) == 16
+        it = pyprimes.primes(200)
+        values = [next(it) for _ in range(16)]
+        self.assertEqual(values, expected)
+
+    def test_primes_end(self):
+        # Test the prime generator with end argument only.
+        expected = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47]
+        it = pyprimes.primes(end=50)
+        self.assertEqual(list(it), expected)
+
+    def test_primes_start_is_inclusive(self):
+        # Start argument to primes() is inclusive.
+        n = 211
+        assert pyprimes.is_prime(n)
+        it = pyprimes.primes(start=n)
+        self.assertEqual(next(it), n)
+
+    def test_primes_end_is_exclusive(self):
+        # End argument to primes() is exclusive.
+        n = 211
+        assert pyprimes.is_prime(n)
+        it = pyprimes.primes(end=n)
+        values = list(it)
+        self.assertEqual(values[-1], 199)
+        assert pyprimes.next_prime(199) == n
+
+    def test_primes_end_none(self):
+        # Check that None is allowed as an end argument.
+        it = pyprimes.primes(end=None)
+        self.assertEqual(next(it), 2)
+
+    def test_primes_start_end(self):
+        # Test the prime generator with both start and end arguments.
+        expected = [401, 409, 419, 421, 431, 433, 439, 443, 449,
+                    457, 461, 463, 467, 479, 487, 491, 499]
+        values = list(pyprimes.primes(start=400, end=500))
+        self.assertEqual(values, expected)
+
+    def test_is_prime(self):
+        # Basic tests for is_prime.
+        self.check_primes_are_prime(pyprimes.is_prime)
+        self.check_composites_are_not_prime(pyprimes.is_prime)
+
+    def test_trial_division(self):
+        # Basic tests for trial_division.
+        self.check_primes_are_prime(pyprimes.trial_division)
+        self.check_composites_are_not_prime(pyprimes.trial_division)
+
+    def test_next_prime(self):
+        self.assertEqual(pyprimes.next_prime(122949823), 122949829)
+        self.assertEqual(pyprimes.next_prime(961748927), 961748941)
+
+    def test_prev_prime(self):
+        self.assertEqual(pyprimes.prev_prime(122949829), 122949823)
+        self.assertEqual(pyprimes.prev_prime(961748941), 961748927)
+        # self.assertEqual(pyprimes.prev_prime(3), 2)
+        self.assertRaises(ValueError, pyprimes.prev_prime, 2)
+
+    def test_nprimes(self):
+        it = pyprimes.nprimes(100)
+        self.assertTrue(it is iter(it))
+        self.assertEqual(list(it), PRIMES)
+
+    def test_nth_primes(self):
+        self.assertEqual(pyprimes.nth_prime(100), PRIMES[-1])
+        self.assertRaises(ValueError, pyprimes.nth_prime, 0)
+        self.assertRaises(ValueError, pyprimes.nth_prime, -1)
+
+    def test_prime_count(self):
+        self.assertEqual(pyprimes.prime_count(PRIMES[-1]), len(PRIMES))
+        # Table of values from http://oeis.org/A000720
+        # plus one extra 0 to adjust for Python's 0-based indexing.
+        expected = [
+            0, 0, 1, 2, 2, 3, 3, 4, 4, 4, 4, 5, 5, 6, 6, 6, 6, 7, 7, 8, 8,
+            8, 8, 9, 9, 9, 9, 9, 9, 10, 10, 11, 11, 11, 11, 11, 11, 12, 12,
+            12, 12, 13, 13, 14, 14, 14, 14, 15, 15, 15, 15, 15, 15, 16, 16,
+            16, 16, 16, 16, 17, 17, 18, 18, 18, 18, 18, 18, 19, 19, 19, 19,
+            20, 20, 21, 21, 21, 21, 21, 21]
+        for i, count in enumerate(expected):
+            self.assertEqual(pyprimes.prime_count(i), count)
+
+    def test_prime_count_tens(self):
+        # Test prime_count function with powers of ten.
+        # Values come from:
+        #   http://mathworld.wolfram.com/PrimeCountingFunction.html
+        #   http://oeis.org/A006880
+        expected = [0, 4, 25, 168, 1229, 9592, 78498]
+        for i, count in enumerate(expected):
+            self.assertEqual(pyprimes.prime_count(10**i), count)
+
+    def test_prime_partial_sums(self):
+        it = pyprimes.prime_partial_sums()
+        self.assertTrue(it is iter(it))
+        # Table of values from http://oeis.org/A007504
+        expected = [
+            0, 2, 5, 10, 17, 28, 41, 58, 77, 100, 129, 160, 197, 238, 281,
+            328, 381, 440, 501, 568, 639, 712, 791, 874, 963, 1060, 1161,
+            1264, 1371, 1480, 1593, 1720, 1851, 1988, 2127, 2276, 2427,
+            2584, 2747, 2914, 3087, 3266, 3447, 3638, 3831, 4028, 4227,
+            4438, 4661, 4888]
+        actual = [next(it) for _ in range(len(expected))]
+        self.assertEqual(actual, expected)
+
+    def test_prime_sum(self):
+        # Test the prime_sum function by comparing it to prime_partial_sums.
+        it = pyprimes.prime_partial_sums()
+        for i in range(100):
+            expected = next(it)
+            actual = pyprimes.prime_sum(i)
+            self.assertEqual(actual, expected)
+
+
+class StrategicTest:  ###### FIXME     (unittest.TestCase, PrimesMixin):
+    """Test suite for the strategic module."""
+
+    def test_primes_basic(self):
+        # Basic tests for the prime generator.
+        self.check_against_known_prime_list(strategic.primes)
+        self.check_is_generator(strategic.primes)
 
     def test_primes_start(self):
         # Test the prime generator with start argument only.
@@ -604,60 +730,8 @@ class PyPrimesTest(unittest.TestCase, PrimesMixin):
     def test_prev_prime(self):
         self.assertEqual(pyprimes.prev_prime(122949829), 122949823)
         self.assertEqual(pyprimes.prev_prime(961748941), 961748927)
+        # self.assertEqual(pyprimes.prev_prime(3), 2)
         self.assertRaises(ValueError, pyprimes.prev_prime, 2)
-
-    def test_nprimes(self):
-        it = pyprimes.nprimes(100)
-        self.assertTrue(it is iter(it))
-        self.assertEqual(list(it), PRIMES)
-
-    def test_nth_primes(self):
-        self.assertEqual(pyprimes.nth_prime(100), PRIMES[-1])
-        self.assertRaises(ValueError, pyprimes.nth_prime, 0)
-        self.assertRaises(ValueError, pyprimes.nth_prime, -1)
-
-    def test_prime_count(self):
-        self.assertEqual(pyprimes.prime_count(PRIMES[-1]), len(PRIMES))
-        # Table of values from http://oeis.org/A000720
-        # plus one extra 0 to adjust for Python's 0-based indexing.
-        expected = [
-            0, 0, 1, 2, 2, 3, 3, 4, 4, 4, 4, 5, 5, 6, 6, 6, 6, 7, 7, 8, 8,
-            8, 8, 9, 9, 9, 9, 9, 9, 10, 10, 11, 11, 11, 11, 11, 11, 12, 12,
-            12, 12, 13, 13, 14, 14, 14, 14, 15, 15, 15, 15, 15, 15, 16, 16,
-            16, 16, 16, 16, 17, 17, 18, 18, 18, 18, 18, 18, 19, 19, 19, 19,
-            20, 20, 21, 21, 21, 21, 21, 21]
-        for i, count in enumerate(expected):
-            self.assertEqual(pyprimes.prime_count(i), count)
-
-    def test_prime_count_tens(self):
-        # Test prime_count function with powers of ten.
-        # Values come from:
-        #   http://mathworld.wolfram.com/PrimeCountingFunction.html
-        #   http://oeis.org/A006880
-        expected = [0, 4, 25, 168, 1229, 9592, 78498]
-        for i, count in enumerate(expected):
-            self.assertEqual(pyprimes.prime_count(10**i), count)
-
-    def test_prime_partial_sums(self):
-        it = pyprimes.prime_partial_sums()
-        self.assertTrue(it is iter(it))
-        # Table of values from http://oeis.org/A007504
-        expected = [
-            0, 2, 5, 10, 17, 28, 41, 58, 77, 100, 129, 160, 197, 238, 281,
-            328, 381, 440, 501, 568, 639, 712, 791, 874, 963, 1060, 1161,
-            1264, 1371, 1480, 1593, 1720, 1851, 1988, 2127, 2276, 2427,
-            2584, 2747, 2914, 3087, 3266, 3447, 3638, 3831, 4028, 4227,
-            4438, 4661, 4888]
-        actual = [next(it) for _ in range(len(expected))]
-        self.assertEqual(actual, expected)
-
-    def test_prime_sum(self):
-        # Test the prime_sum function by comparing it to prime_partial_sums.
-        it = pyprimes.prime_partial_sums()
-        for i in range(100):
-            expected = next(it)
-            actual = pyprimes.prime_sum(i)
-            self.assertEqual(actual, expected)
 
 
 class ExpensiveTests(unittest.TestCase):
@@ -701,6 +775,17 @@ class UtilitiesTests(unittest.TestCase):
         self.assertEqual(list(it), [1, 2, 3, 4, 3, 3, 2, 5])
         it = filter_between(values, start=3, end=7)  # Both start and end.
         self.assertEqual(list(it), [3, 4, 3, 3, 2, 5, 6])
+
+
+class RegressionTests(unittest.TestCase):
+    """Regression tests for fixed bugs."""
+
+    @skip("FIXME")
+    def test_prev_prime_from_3(self):
+        # Regression test for the case of prev_prime(3) --> 2.
+        for prover in ():
+            self.assertEqual(strategic.prev_prime(prover, 3), 2)
+        self.assertEqual(pyprimes.prev_prime(3), 2)
 
 
 

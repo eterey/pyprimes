@@ -188,7 +188,7 @@ def prev_prime(prover, n):
         n -= 2
     else:  # Even numbers.
         n -= 1
-    while not isprime(prover, n):
+    while not is_prime(prover, n):
         n -= 2
     return n
 
