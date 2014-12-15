@@ -67,7 +67,7 @@ previous, prime from some given value:
     19
 
     NOTE:: For large prime numbers p, the average distance between p and
-           the next (or previous) prime is proportional to ln(p). If p
+           the next (or previous) prime is proportional to log p. If p
            is large enough, it may take some considerable time to calculate
            the next or previous prime from p.
 
@@ -188,7 +188,7 @@ class MaybeComposite(RuntimeWarning):
 
 # === Prime numbers ===
 
-def primes(start=None, end=None, strategy=None):
+def primes(start=None, end=None):
     """Yield primes, optionally between ``start`` and ``end``.
 
     If ``start`` or ``end`` arguments are given, they must be integers.
@@ -207,41 +207,13 @@ def primes(start=None, end=None, strategy=None):
     If ``start`` is not given, or is None, there is no lower limit and the
     first prime yielded will be 2. If ``end`` is not given or is None,
     there is no upper limit.
-
-    Optional argument ``strategy`` can be used to delegate to alternative
-    implementations. If ``strategy`` is not given, or is None, a default
-    implementation is used. Otherwise, ``strategy`` must be a function
-    which takes no arguments and returns an iterator that yields primes.
-    (A generator function is a convenient way to manage this.)
-
-    >>> from pyprimes.awful import turner  # Use a slow algorithm.
-    >>> list(primes(6, 30, turner))
-    [7, 11, 13, 17, 19, 23, 29]
-
-    No checks are made to ensure that the ``strategy`` iterator actually
-    returns prime numbers.
     """
-    if strategy is None:
-        from pyprimes.sieves import best_sieve as strategy
-    #return filter_between(gen(), start, end)
-    it = strategy()
-    p = next(it)
-    if start is not None:
-        # Drop the primes below start as fast as possible, then yield.
-        while p < start:
-            p = next(it)
-    assert start is None or p >= start
-    if end is not None:
-        while p < end:
-            yield p
-            p = next(it)
-    else:
-        while True:
-            yield p
-            p = next(it)
-    # Then yield until end.
+    from pyprimes.sieves import best_sieve
+    from pyprimes.strategic import primes
+    return primes(best_sieve, start, end)
 
-def next_prime(n, isprime=None):
+
+def next_prime(n):
     """Return the first prime number strictly greater than n.
 
     >>> next_prime(97)
@@ -249,31 +221,12 @@ def next_prime(n, isprime=None):
 
     For sufficiently large n, over approximately 341 trillion, the result
     may be only probably prime rather than certainly prime.
-
-    Optional argument ``isprime`` is used for testing whether values are
-    prime or not. If given, it should be a function which takes a single
-    integer value and returns a true object for primes and a false object
-    for non-primes. If ``isprime`` is None, or not given, the primality
-    tester ``is_prime`` is used by default.
-
-    The average gap between a prime number p and the next prime is log p.
     """
-    if isprime is None:
-        isprime = is_prime
-    if n < 2:
-        return 2
-    if n % 2 == 0:
-        # Even numbers.
-        n += 1
-    else:
-        # Odd numbers.
-        n += 2
-    while not is_prime(n):
-        n += 2
-    return n
+    from pyprimes.strategic import next_prime
+    return next_prime(is_prime, n)
 
 
-def prev_prime(n, isprime=None):
+def prev_prime(n):
     """Return the first prime number strictly less than n.
 
     >>> prev_prime(100)
@@ -283,33 +236,14 @@ def prev_prime(n, isprime=None):
 
     For sufficiently large n, over approximately 341 trillion, the result
     may be only probably prime rather than certainly prime.
-
-    Optional argument ``isprime`` is used for testing whether values are
-    prime or not. If given, it should be a function which takes a single
-    integer value and returns a true object for primes and a false object
-    for non-primes. If ``isprime`` is None, or not given, the primality
-    tester ``is_prime`` is used by default.
-
-    The average gap between a prime number p and the next prime is log p.
     """
-    if isprime is None:
-        isprime = is_prime
-    if n <= 2:
-        raise ValueError('smallest prime is 2')
-    if n % 2 == 1:
-        # Odd numbers.
-        n -= 2
-    else:
-        # Even numbers.
-        n -= 1
-    while not isprime(n):
-        n -= 2
-    return n
+    from pyprimes.strategic import prev_prime
+    return prev_prime(is_prime, n)
 
 
 # === Primality testing ===
 
-def is_prime(n, prover=None):
+def is_prime(n):
     """Return True if n is probably a prime number, and False if it is not.
 
     >>> is_prime(103)
@@ -317,57 +251,32 @@ def is_prime(n, prover=None):
     >>> is_prime(105)
     False
 
-    The optional argument ``prover`` is used to specify alternative
-    algorithms for checking primality. If ``prover`` is not given or
-    is None, the default implementation is used. Otherwise, ``prover``
-    must be a function which takes a single integer and returns a flag
-    specifying whether the integer is prime or not, and ``is_prime``
-    behaves as a thin wrapper around that function. No checks are made
-    to ensure that ``prover`` actually tests for prime numbers.
 
-    If given, ``prover`` should return one of:
+    For sufficiently large numbers, ``is_prime`` may be probabilistic rather
+    than deterministic. If that is the case, ``is_prime`` will raise a
+    ``MaybeComposite`` warning if ``n`` is only probably prime rather than
+    certainly prime. The probability of a randomly choosen value being
+    mistakenly identified as prime when it is actually composite is less
+    than 1e-18 (1 chance in a million million million).
 
-        0 or False      Number is definitely composite.
-        1 or True       Number is definitely prime.
-        2               Number is a probable prime or pseudoprime.
-
-    Any other value will raise TypeError or ValueError.
-
-    With the default prover, ``is_prime`` may be probabilistic rather
-    than deterministic for sufficiently large numbers. If that is the
-    case, ``is_prime`` will give a ``MaybeComposite`` warning if ``n``
-    is only probably prime rather than certainly prime. By default, the
-    probability of a randomly choosen value being mistakenly identified
-    as prime when it is actually composite (a false positive error) is
-    less than 1e-18 (1 chance in a million million million).
-
-    There are no false negative errors: if ``is_prime`` returns False,
-    then the number is certainly composite.
+    If ``is_prime`` returns False, the number is certainly composite.
     """
-    if prover is None:
-        from pyprimes.probabilistic import is_probable_prime as prover
-    flag = prover(n)
-    if flag is True or flag is False:
-        return flag
-    # Check for actual ints, not subclasses. Gosh this takes me back to
-    # Python 1.5 days...
-    if type(flag) is int:
-        if flag in (0, 1, 2):
-            if flag == 2:
-                message = "%d is only only probably prime" % n
-                import warnings
-                warnings.warn(message, MaybeComposite)
-            return bool(flag)
-        raise ValueError('prover returned invalid int flag %d' % flag)
-    raise TypeError('expected bool or int but prover returned %r' % flag)
+    from pyprimes.probabilistic import is_probable_prime
+    from pyprimes.strategic import is_prime
+    flag = is_prime(is_probable_prime, n)
+    assert flag in (0, 1, 2)
+    if flag == 2:
+        message = "%d is only only probably prime" % n
+        import warnings
+        warnings.warn(message, MaybeComposite)
+    return bool(flag)
 
 
-def trial_division(n, strategy=None):
+def trial_division(n):
     """trial_division(n) -> True|False
 
-    By default, an exact but slow primality test using trial division by
-    primes only. It returns True if the argument is a prime number,
-    otherwise False.
+    An exact but slow primality test using trial division by primes only.
+    It returns True if the argument is a prime number, otherwise False.
 
     >>> trial_division(11)
     True
@@ -375,38 +284,24 @@ def trial_division(n, strategy=None):
     False
 
     For large values of n, this may be slow or run out of memory.
-
-    If given, optional argument ``strategy`` should be a generator yielding
-    prime numbers. See the ``primes`` function for further details.
     """
-    if n < 2:
-        return False
-    if n == 2:
-        return True
-    if n % 2 == 0:
-        return False
-    limit = n**0.5  # FIXME
-    for divisor in primes(strategy=strategy):
-        if divisor > limit: break
-        if n % divisor == 0: return False
-    return True
+    from pyprimes.strategic import trial_division
+    return trial_division(primes, n)
 
 
 # === Number theory convenience functions ===
 
-def nprimes(n, strategy=None):
+def nprimes(n):
     """Convenience function that yields the first n primes only.
 
     >>> list(nprimes(10))
     [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
 
-    If given, optional argument ``strategy`` should be a generator yielding
-    prime numbers. See the ``primes`` function for further details.
     """
-    return itertools.islice(primes(strategy=strategy), n)
+    return itertools.islice(primes(), n)
 
 
-def nth_prime(n, strategy=None):
+def nth_prime(n):
     """nth_prime(n) -> int
 
     Return the nth prime number, starting counting from 1. Equivalent to
@@ -419,16 +314,14 @@ def nth_prime(n, strategy=None):
     >>> nth_prime(50)
     229
 
-    If given, optional argument ``strategy`` should be a generator yielding
-    prime numbers. See the ``primes`` function for further details.
     """
     # http://oeis.org/A000040
     if n < 1:
         raise ValueError('argument must be a positive integer')
-    return next(itertools.islice(primes(strategy=strategy), n-1, n))
+    return next(itertools.islice(primes(), n-1, n))
 
 
-def prime_count(n, strategy=None):
+def prime_count(n):
     """prime_count(n) -> int
 
     Returns the number of prime numbers less than or equal to n.
@@ -441,16 +334,13 @@ def prime_count(n, strategy=None):
     1229
 
     The number of primes less than x is approximately n/(ln n - 1).
-
-    If given, optional argument ``strategy`` should be a generator yielding
-    prime numbers. See the ``primes`` function for further details.
     """
     # See also:  http://primes.utm.edu/howmany.shtml
     # http://mathworld.wolfram.com/PrimeCountingFunction.html
     # http://oeis.org/A000720
     if n < 1:
         return 0
-    return sum(1 for p in primes(end=n+1, strategy=strategy))
+    return sum(1 for p in primes(end=n+1))
 
 """ π(10) == 4
     π(100) == 25
@@ -462,7 +352,7 @@ def prime_count(n, strategy=None):
     """
 
 
-def prime_sum(n, strategy=None):
+def prime_sum(n):
     """prime_sum(n) -> int
 
     prime_sum(n) returns the sum of the first n primes.
@@ -473,30 +363,25 @@ def prime_sum(n, strategy=None):
     4888
 
     The sum of the first n primes is approximately n**2*(ln n)/2.
-
-    If given, optional argument ``strategy`` should be a generator yielding
-    prime numbers. See the ``primes`` function for further details.
     """
     # See:  http://mathworld.wolfram.com/PrimeSums.html
     # http://oeis.org/A007504
     if n < 1:
         return 0
-    return sum(nprimes(n, strategy))
+    return sum(nprimes(n))
 
 
-def prime_partial_sums(strategy=None):
+def prime_partial_sums():
     """Yield the partial sums of the prime numbers.
 
     >>> p = prime_partial_sums()
     >>> [next(p) for _ in range(6)]  # primes 2, 3, 5, 7, 11, ...
     [0, 2, 5, 10, 17, 28]
 
-    If given, optional argument ``strategy`` should be a generator yielding
-    prime numbers. See the ``primes`` function for further details.
     """
     # http://oeis.org/A007504
     n = 0
-    for p in primes(strategy=strategy):
+    for p in primes():
         yield n
         n += p
 
