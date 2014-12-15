@@ -45,8 +45,9 @@ def erat(n):
 def sieve():
     """Yield prime integers using the Sieve of Eratosthenes.
 
-    This algorithm is modified to generate the primes lazily rather than the
-    traditional version which operates on a fixed size array of integers.
+    This recursive algorithm is modified to generate the primes lazily
+    rather than the traditional version which operates on a fixed size
+    array of integers.
     """
     # This is based on a paper by Melissa E. O'Neill, with an implementation
     # given by Gerald Britton:
@@ -109,7 +110,7 @@ def croft():
     # and this website:
     #   http://www.primesdemystified.com/
     # Memory usage increases roughly linearly with the number of primes seen.
-    # dict ``roots`` stores an entry x:p for every prime p.
+    # dict ``roots`` stores an entry p**2:p for every prime p.
     for p in (2, 3, 5):
         yield p
     roots = {9: 3, 25: 5}  # Map d**2 -> d.
