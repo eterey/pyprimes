@@ -36,13 +36,15 @@ Definitions
 -----------
 
 "Prime numbers" are positive integers with no factors other than themselves
-and 1. The first few primes are 2, 3, 5, 7, 11, ...
+and 1. The first few primes are 2, 3, 5, 7, 11, ... . There is only one
+even prime number, namely 2, and an infinite number of odd prime numbers.
 
-"Composite numbers" are positive integers which do have factors other than
+"Composite numbers" are positive integers which have factors other than
 themselves and 1. Composite numbers can be uniquely factorised into the
 product of two or more (possibly repeated) primes, e.g. 18 = 2*3*3.
 
-Both 0 and 1 are neither prime nor composite.
+Both 0 and 1 are considered by mathematicians to be neither prime nor
+composite.
 
 
 Generating prime numbers
@@ -65,7 +67,9 @@ previous, prime from some given value:
     19
 
     NOTE:: For large prime numbers p, the average distance between p and
-           the next (or previous) prime is proportional to ln(p).
+           the next (or previous) prime is proportional to ln(p). If p
+           is large enough, it may take some considerable time to calculate
+           the next or previous prime from p.
 
 
 Primality testing
@@ -80,12 +84,13 @@ To test whether an integer is prime or not, use ``is_prime``:
 
 For extremely large values ``is_prime`` may be probabilistic. That is,
 if it reports a number is prime, it may be only *almost certainly* prime,
-with a very small chance that the number is actually composite. (If it
-returns False, the number is certainly composite.)
+with a very small chance that the number is actually composite. If it
+returns False, the number is certainly composite. For more details on the
+probabilistic nature of primality testing, see the ``probabilistic`` module.
 
 The ``trial_division`` function also returns True for primes and False for
-non-primes, unlike ``is_prime`` it is an exact test. However, it may be
-slow for large values.
+non-primes, unlike ``is_prime`` it is always an exact test. However, it may
+be slow for large values.
 
     >>> trial_division(15)
     False
@@ -96,8 +101,8 @@ slow for large values.
 Number theory convenience functions
 -----------------------------------
 
-There are a few convenience functions from the Number Theory branch of
-mathematics.
+``pyprimes`` offers a few convenience functions from the Number Theory
+branch of mathematics.
 
     nprimes:
         Return the first n primes.
@@ -112,7 +117,7 @@ mathematics.
         Return the sum of primes less than n.
 
     prime_partial_sums:
-        Yield the sums of primes less than n.
+        Yield the running sums of primes less than n.
 
 
 Sub-modules
@@ -122,7 +127,8 @@ The pyprimes package also includes the following sub-modules:
 
     awful:
         Simple but inefficient, slow or otherwise awful algorithms for
-        generating primes and testing for primality.
+        generating primes and testing for primality. This module is
+        provided for pedagogical purposes.
 
     factor:
         Factorise numbers into the product of primes.
@@ -133,10 +139,14 @@ The pyprimes package also includes the following sub-modules:
     sieves:
         Generate prime numbers using sieving algorithms.
 
+    strategic:
+        Various prime generating and testing functions implemented using
+        the Strategy design pattern.
+
     utilities:
         Assorted utility functions.
 
-plus the following semi-private sub-modules:
+plus the following private sub-modules:
 
     compat23:
         Internal compatibility layer, to support multiple versions of
@@ -145,8 +155,9 @@ plus the following semi-private sub-modules:
     tests:
         Unit and regression tests for the package.
 
-The contents of the semi-private modules are subject to change or removal
+The contents of the private modules are subject to change or removal
 without notice.
+
 """
 
 from __future__ import division
