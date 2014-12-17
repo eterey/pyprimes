@@ -165,6 +165,7 @@ from __future__ import division
 import itertools
 import warnings
 
+import pyprimes.strategic
 from pyprimes.compat23 import next
 from pyprimes.utilities import filter_between
 
@@ -209,8 +210,7 @@ def primes(start=None, end=None):
     there is no upper limit.
     """
     from pyprimes.sieves import best_sieve
-    from pyprimes.strategic import primes
-    return primes(best_sieve, start, end)
+    return pyprimes.strategic.primes(best_sieve, start, end)
 
 
 def next_prime(n):
@@ -222,8 +222,7 @@ def next_prime(n):
     For sufficiently large n, over approximately 341 trillion, the result
     may be only probably prime rather than certainly prime.
     """
-    from pyprimes.strategic import next_prime
-    return next_prime(is_prime, n)
+    return pyprimes.strategic.next_prime(is_prime, n)
 
 
 def prev_prime(n):
@@ -237,8 +236,7 @@ def prev_prime(n):
     For sufficiently large n, over approximately 341 trillion, the result
     may be only probably prime rather than certainly prime.
     """
-    from pyprimes.strategic import prev_prime
-    return prev_prime(is_prime, n)
+    return pyprimes.strategic.prev_prime(is_prime, n)
 
 
 # === Primality testing ===
@@ -262,8 +260,7 @@ def is_prime(n):
     If ``is_prime`` returns False, the number is certainly composite.
     """
     from pyprimes.probabilistic import is_probable_prime
-    from pyprimes.strategic import is_prime
-    flag = is_prime(is_probable_prime, n)
+    flag = pyprimes.strategic.is_prime(is_probable_prime, n)
     assert flag in (0, 1, 2)
     if flag == 2:
         message = "%d is only only probably prime" % n
@@ -285,8 +282,7 @@ def trial_division(n):
 
     For large values of n, this may be slow or run out of memory.
     """
-    from pyprimes.strategic import trial_division
-    return trial_division(primes, n)
+    return pyprimes.strategic.trial_division(primes, n)
 
 
 # === Number theory convenience functions ===
