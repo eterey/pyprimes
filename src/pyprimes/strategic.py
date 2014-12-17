@@ -159,12 +159,10 @@ def next_prime(prover, n):
     """
     if n < 2:
         return 2
-    if n % 2 == 0:
-        # Next candidate prime from an even number is the next odd number.
-        n += 1
-    else:
-        # Next candidate prime from an odd number is the next odd number.
-        n += 2
+    # Advance to the next odd number.
+    if n % 2 == 0:  n += 1
+    else:  n += 2
+    assert n%2 == 1
     while not is_prime(prover, n):
         n += 2
     return n
@@ -184,10 +182,10 @@ def prev_prime(prover, n):
     """
     if n <= 2:
         raise ValueError('There are no smaller primes than 2.')
-    if n % 2 == 1:  # Odd numbers.
-        n -= 2
-    else:  # Even numbers.
-        n -= 1
+    # Retreat to the previous odd number.
+    if n % 2 == 1:  n -= 2
+    else:  n -= 1
+    assert n%2 == 1
     while not is_prime(prover, n):
         n -= 2
     return n
