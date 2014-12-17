@@ -402,7 +402,7 @@ class Fermat_Test(unittest.TestCase, PrimesMixin):
 
     @skip('test not written yet')
     def test_with_composites(self):
-        # Test the primality test with composites.
+        # Test the primality test with some large-ish composites.
         raise NotImplementedError
 
 
@@ -411,6 +411,21 @@ class Miller_Rabin_Test(Fermat_Test):
 
     def get_primality_test(self):
         return probabilistic.is_miller_rabin_probable_prime
+
+    def test_with_composites(self):
+        # These values have come from this email:
+        # https://gmplib.org/list-archives/gmp-discuss/2005-May/001652.html
+        isprime = self.get_primality_test()
+        N = 1502401849747176241
+        # Composite, but 2 through 11 are all M-R liars.
+        # Lowest witness is 12.
+        self.assertEqual(isprime(N, tuple(range(2, 12))), 2)
+        self.assertEqual(isprime(N, 12), 0)
+        N = 341550071728321
+        # Composite, but 2 through 22 are all M-R liars.
+        # Lowest witness is 23.
+        self.assertEqual(isprime(N, tuple(range(2, 23))), 2)
+        self.assertEqual(isprime(N, 23), 0)
 
 
 class Is_Probable_Test(unittest.TestCase, PrimesMixin):
@@ -808,10 +823,5 @@ if __name__ == '__main__':
 # 8038374574536394912570796143419421081388376882875581458374889175222974273765333652186502336163960045457915042023603208766569966760987284043965408232928738791850869166857328267761771029389697739470167082304286871099974399765441448453411558724506334092790222752962294149842306881685404326457534018329786111298960644845216191652872597534901
 
 """
-1502401849747176241 (passes bases 2 -11, recognized composite by base
-12) ( ?? requires 8+ iterations to pass -my guess, haven't tried it
-using gmp)
-341550071728321 (passes bases 2-22, recognized composite by base 23) (
-?? requires 13+ iterations to pass -my guess, haven't tried it using gmp)
 
 """

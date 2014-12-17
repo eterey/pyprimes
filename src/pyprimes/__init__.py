@@ -66,7 +66,7 @@ previous, prime from some given value:
     >>> prev_prime(20)
     19
 
-    NOTE:: For large prime numbers p, the average distance between p and
+    NOTE:: For large prime numbers p, the *average* distance between p and
            the next (or previous) prime is proportional to log p. If p
            is large enough, it may take some considerable time to calculate
            the next or previous prime from p.
@@ -321,21 +321,22 @@ def prime_count(n):
     """prime_count(n) -> int
 
     Returns the number of prime numbers less than or equal to n.
-    It is also known as the Prime Counting Function, or π(n).
+    It is also known as the Prime Counting Function, π(x) or pi(x).
     (Not to be confused with the constant pi π = 3.1415....)
 
     >>> prime_count(20)
     8
-    >>> prime_count(10000)
-    1229
+    >>> prime_count(10780)
+    1312
+    >>> prime_count(30075)
+    3251
 
     The number of primes less than x is approximately n/(ln n - 1).
     """
+    # Values for pi(x) taken from here: http://primes.utm.edu/nthprime/
     # See also:  http://primes.utm.edu/howmany.shtml
     # http://mathworld.wolfram.com/PrimeCountingFunction.html
     # http://oeis.org/A000720
-    if n < 1:
-        return 0
     return sum(1 for p in primes(end=n+1))
 
 
