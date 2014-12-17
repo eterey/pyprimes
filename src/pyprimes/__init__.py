@@ -338,15 +338,6 @@ def prime_count(n):
         return 0
     return sum(1 for p in primes(end=n+1))
 
-""" π(10) == 4
-    π(100) == 25
-    π(1000) == 168
-    π(10000) == 1229
-    π(100000) == 9592
-    π(10**6) == 78498
-    π(10**7) == 664579
-    """
-
 
 def prime_sum(n):
     """prime_sum(n) -> int
