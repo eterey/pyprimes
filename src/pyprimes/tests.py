@@ -360,59 +360,104 @@ class Sieves_Test(unittest.TestCase, PrimesMixin):
         self.check_against_known_prime_list(f)
 
 
-class Fermat_Test(unittest.TestCase, PrimesMixin):
-    """Test the Fermat primality test function.
+class Probabilistic_Mixin:
+    """Mixin class for testing probabilistic primality tests.
 
-    This class is intended to be subclassed for testing other
-    probabilistic primality test functions with the same
-    characteristics as the Fermat test, e.g. Miller-Rabin.
+    The tests in this class should only supply a single argument
+    to the probabilistic test function. E.g.:
+
+        is_miller_rabin_probable_prime(n)         # Yes.
+        is_miller_rabin_probable_prime(n, bases)  # No!
+
+    For tests with the second argument, see Probabilistic_Extra_Mixin.
     """
-
     def get_primality_test(self):
-        """Returns the primality test function to be tested.
+        """Returns the primality test function to be tested."""
+        raise NotImplementedError("override this in subclasses")
 
-        Override this in subclasses.
-        """
-        return probabilistic.is_fermat_probable_prime
-
-    def test_below_two(self):
-        # Test the primality test with values of n below 2.
+    def test_below_two_are_nonprime(self):
+        # Test that values of n below 2 are non-prime.
         isprime = self.get_primality_test()
         for n in range(-7, 2):
             self.assertEqual(isprime(n), 0)
-            self.assertEqual(isprime(n, 4), 0)
-            self.assertEqual(isprime(n, (3, 5)), 0)
 
-    def test_at_two(self):
-        # Test the primality test with n == 2.
+    def test_two_is_prime(self):
+        # Test that 2 is definitely prime.
         isprime = self.get_primality_test()
         self.assertEqual(isprime(2), 1)
 
-    def test_with_primes(self):
+    def test_primes_are_not_nonprime(self):
         # Test the primality test with primes.
+        isprime = self.get_primality_test()
+        self.check_primes_are_prime(isprime)
+
+    def test_with_composites(self):
+        # Composites should return 0 or 2 but never 1.
+        isprime = self.get_primality_test()
+        for _ in range(10):
+            factors = self.get_factors()
+            n = product(factors)
+            self.assertTrue(isprime(n) != 1,
+                            "composite %d detected as definitely prime" % n)
+
+    def get_factors(self):
+        factors = PRIMES*4
+        random.shuffle(factors)
+        return factors[:10]
+
+
+class Probabilistic_Extra_Mixin:
+    """Mixin class for probabilistic tests involving a second argument."""
+
+    def test_below_two_are_nonprime_with_bases(self):
+        # Test that values of n below 2 are non-prime.
+        isprime = self.get_primality_test()
+        for n in range(-7, 2):
+            self.assertEqual(isprime(n, 4), 0)
+            self.assertEqual(isprime(n, (3, 5)), 0)
+
+    def test_primes_are_not_nonprime_with_bases(self):
         # Since there are no false negatives, primes will never test as
         # composite, no matter what bases are used.
         isprime = self.get_primality_test()
-        self.check_primes_are_prime(isprime)
-        for p in PRIMES[1:]:  # Skip 2.
+        for p in PRIMES[1:]:  # Skip prime 2.
             bases = list(range(1, p))
             random.shuffle(bases)
             bases = tuple(bases[:10])
             self.assertEqual(isprime(p, bases), 2)
 
-    @skip('test not written yet')
-    def test_with_composites(self):
-        # Test the primality test with some large-ish composites.
-        raise NotImplementedError
+    def test_with_composites_with_bases(self):
+        # Composites should return 0 or 2 but never 1.
+        isprime = self.get_primality_test()
+        errmsg = "%d detected as definitely prime with %r"
+        for _ in range(10):
+            factors = PRIMES[51:]*3
+            random.shuffle(factors)
+            n = product(factors[:8])
+            bases = tuple([random.randint(2, n-1) for _ in range(5)])
+            self.assertTrue(isprime(n, bases) != 1, errmsg % (n, bases))
 
 
-class Miller_Rabin_Test(Fermat_Test):
-    """Test the Miller-Rabin primality test."""
+class Fermat_Test(
+            unittest.TestCase, Probabilistic_Mixin,
+            Probabilistic_Extra_Mixin, PrimesMixin
+            ):
+    """Test the Fermat primality test function."""
+
+    def get_primality_test(self):
+        return probabilistic.is_fermat_probable_prime
+
+
+class Miller_Rabin_Probable_Test(
+            unittest.TestCase, Probabilistic_Mixin,
+            Probabilistic_Extra_Mixin, PrimesMixin
+            ):
+    """Test the Miller-Rabin probabilistic primality test."""
 
     def get_primality_test(self):
         return probabilistic.is_miller_rabin_probable_prime
 
-    def test_with_composites(self):
+    def test_composites_with_known_liars(self):
         # These values have come from this email:
         # https://gmplib.org/list-archives/gmp-discuss/2005-May/001652.html
         isprime = self.get_primality_test()
@@ -426,6 +471,27 @@ class Miller_Rabin_Test(Fermat_Test):
         # Lowest witness is 23.
         self.assertEqual(isprime(N, tuple(range(2, 23))), 2)
         self.assertEqual(isprime(N, 23), 0)
+
+
+class Miller_Rabin_Definite_Test(
+            unittest.TestCase, Probabilistic_Mixin, PrimesMixin):
+    """Test the Miller-Rabin definite primality test.
+
+    Even though this is a definite test and non-probabilistic, we can
+    use the Probabilistic_Mixin tests.
+    """
+
+    def get_primality_test(self):
+        return probabilistic.is_miller_rabin_definite_prime
+
+    def get_factors(self):
+        factors = super(Miller_Rabin_Definite_Test, self).get_factors()
+        return factors[:6]
+
+    def test_failure(self):
+        # Test the definitive version of M-R raises when it cannot be sure.
+        isprime = self.get_primality_test()
+        self.assertRaises(ValueError, isprime, 2**100-1)
 
 
 class Is_Probable_Test(unittest.TestCase, PrimesMixin):
@@ -795,7 +861,7 @@ class UtilitiesTests(unittest.TestCase):
 class RegressionTests(unittest.TestCase):
     """Regression tests for fixed bugs."""
 
-    @skip("FIXME")
+    @skip("FIXME -- this hangs")
     def test_prev_prime_from_3(self):
         # Regression test for the case of prev_prime(3) --> 2.
         for prover in ():
@@ -818,10 +884,14 @@ if __name__ == '__main__':
     unittest.main()
 
 
-
 # Evil Miller-Rabin value?
 # 8038374574536394912570796143419421081388376882875581458374889175222974273765333652186502336163960045457915042023603208766569966760987284043965408232928738791850869166857328267761771029389697739470167082304286871099974399765441448453411558724506334092790222752962294149842306881685404326457534018329786111298960644845216191652872597534901
+# https://gmplib.org/list-archives/gmp-discuss/2005-May/001651.html
+#
+# => N-1 = 2**2 * 3**4 * 5**2 * 641 * 12107 * M
+# => M+1 = 2**4 * 3**2 * 307 * 4817 * K
+# => K-1 = 2 * 37 * 53 * ...
 
-"""
 
-"""
+
+

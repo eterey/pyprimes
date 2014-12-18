@@ -212,66 +212,15 @@ class IsProbablePrime(object):
         Returns 0, 1 or 2 for definitely non-prime, definitely prime,
         or unsure (maybe prime).
         """
-        assert n > 1
-        # We can always get a guaranteed (determistic, non-probabilistic)
-        # result from Miller-Rabin by exhaustively testing with every
-        # witness in the inclusive range 1...sqrt(n). If the extended
-        # Riemann hypothesis is correct, the upper bound can be reduced
-        # to min(n-1, floor(2*(ln n)**2)). But for sufficiently small n,
-        # it is possible to get a deterministic answer from a mere handful
-        # of witnesses.
-        #
-        # Pomerance, Selfridge and Wagstaff (1980), and Jaeschke (1993)
-        # have found small sets of bases which conclusively determine
-        # primality for all values of n up to some upper limit, currently
-        # around 3.8 million trillion (3.8e18).
-        if n < 2047:
-            # References: [1], [2], [4]  (given below)
-            bases = (2,)
-        elif n < 1373653:  # ~1.3 million
-            # Ref: [1], [2], [3], [4]
-            bases = (2, 3)
-        elif n < 9080191:  # ~9.0 million
-            # Ref: [3], [4]
-            bases = (31, 73)
-        elif n < 25326001:  # ~25.3 million
-            # Ref: [1], [2], [3], [4]
-            bases = (2, 3, 5)
-        elif n < 3215031751:  # ~3.2 billion
-            # Ref: [1], [2], [3], [4]
-            bases = (2, 3, 5, 7)
-        elif n < 4759123141:  # ~4.7 billion
-            # Ref: [3], [4]
-            bases = (2, 7, 61)
-        ## elif n < 1122004669633:  # ~1.2 trillion
-        ##     bases = (2, 13, 23, 1662803)  # Ref: [4]
-        elif n < 2152302898747:  # ~2.1 trillion
-            # Ref: [1], [2], [3], [4]
-            bases = (2, 3, 5, 7, 11)
-        elif n < 3474749660383:  # ~3.4 trillion
-            # Ref: [1], [2], [3], [4]
-            bases = (2, 3, 5, 7, 11, 13)
-        elif n < 341550071728321:  # ~341.5 trillion
-            # Ref: [1], [2], [3], [4]
-            bases = (2, 3, 5, 7, 11, 13, 17)
-        elif n < 3825123056546413051:  # ~3.8 million trillion
-            # Ref: [1], [4]
-            bases = (2, 3, 5, 7, 11, 13, 17, 19, 23)
-        ## elif n <= 2**64:
-        ##     # Source: http://miller-rabin.appspot.com/
-        ##     # How trustworthy is this?
-        ##     bases = (2, 325, 9375, 28178, 450775, 9780504, 1795265022)
+        assert (n > 2) and (n % 2 == 1)
+        witnesses = _get_miller_rabin_witnesses(n)
+        if witnesses is None:
+            flag = 2
         else:
-            return 2  # Unsure.
-        flag = is_miller_rabin_probable_prime(n, bases)
-        if flag == 2:
-            flag = 1
+            flag = is_miller_rabin_probable_prime(n, witnesses)
+            if flag == 2:
+                flag = 1
         return flag
-    # References:
-    #   [1] http://oeis.org/A014233
-    #   [2] http://mathworld.wolfram.com/Rabin-MillerStrongPseudoprimeTest.html
-    #   [3] http://primes.utm.edu/prove/prove2_3.html
-    #   [4] http://en.wikipedia.org/wiki/Miller%E2%80%93Rabin_primality_test
 
     def _prime_miller_rabin(self, n):
         """Probabilistic primality test using Miller-Rabin
@@ -588,6 +537,91 @@ def _is_composite(b, d, s, n):
         if pow(b, 2**i * d, n) == n-1:
             return False
     return True
+
+
+def is_miller_rabin_definite_prime(n):
+    """Deterministic but limited primality test using Miller-Rabin.
+
+    Returns True for definite primes, False for definite non-primes, and
+    raises ValueError for numbers which are unsure.
+    """
+    if n <= 1:
+        return False
+    elif n == 2:
+        return True
+    elif n % 2 == 0:
+        return False
+    witnesses = _get_miller_rabin_witnesses(n)
+    if witnesses is None:
+        msg = 'no definite Miller-Rabin test is available for %d' % n
+        raise ValueError(msg)
+    return is_miller_rabin_probable_prime(n, witnesses) != 0
+
+
+def _get_miller_rabin_witnesses(n):
+    """Return a tuple of definitive Miller-Rabin witnesses for n."""
+    # We can always get a guaranteed (determistic, non-probabilistic)
+    # result from Miller-Rabin by exhaustively testing with every
+    # potential witness in the inclusive range 1...sqrt(n). If the
+    # extended Riemann hypothesis is correct, that upper bound can be
+    # further reduced to min(n-1, floor(2*(ln n)**2)).
+    #
+    # However, for sufficiently small n, it is possible to get a
+    # deterministic answer from a mere handful of witnesses.
+    #
+    # Pomerance, Selfridge and Wagstaff (1980), and Jaeschke (1993)
+    # have found small sets of bases which conclusively determine
+    # primality for all values of n up to some upper limit, currently
+    # around 3.8 million trillion (3.8e18).
+    #
+    # References:
+    #   [1] http://oeis.org/A014233
+    #   [2] http://mathworld.wolfram.com/Rabin-MillerStrongPseudoprimeTest.html
+    #   [3] http://primes.utm.edu/prove/prove2_3.html
+    #   [4] http://en.wikipedia.org/wiki/Miller%E2%80%93Rabin_primality_test
+    #
+    assert (n > 2) and (n%2 == 1)
+    if n < 2047:
+        # References: [1], [2], [4]
+        witnesses = (2,)
+    elif n < 1373653:  # ~1.3 million
+        # References: [1], [2], [3], [4]
+        witnesses = (2, 3)
+    elif n < 9080191:  # ~9.0 million
+        # References: [3], [4]
+        witnesses = (31, 73)
+    elif n < 25326001:  # ~25.3 million
+        # References: [1], [2], [3], [4]
+        witnesses = (2, 3, 5)
+    elif n < 3215031751:  # ~3.2 billion
+        # References: [1], [2], [3], [4]
+        witnesses = (2, 3, 5, 7)
+    elif n < 4759123141:  # ~4.7 billion
+        # References: [3], [4]
+        witnesses = (2, 7, 61)
+    # elif n < 1122004669633:  # ~1.2 trillion
+    ## We don't bother with these witnesses, since the next block
+    ## uses almost as few and has better references.
+    #     bases = (2, 13, 23, 1662803)  # References: [4]
+    elif n < 2152302898747:  # ~2.1 trillion
+        # References: [1], [2], [3], [4]
+        witnesses = (2, 3, 5, 7, 11)
+    elif n < 3474749660383:  # ~3.4 trillion
+        # References: [1], [2], [3], [4]
+        witnesses = (2, 3, 5, 7, 11, 13)
+    elif n < 341550071728321:  # ~341.5 trillion
+        # References: [1], [2], [3], [4]
+        witnesses = (2, 3, 5, 7, 11, 13, 17)
+    elif n < 3825123056546413051:  # ~3.8 million trillion
+        # References: [1], [4]
+        witnesses = (2, 3, 5, 7, 11, 13, 17, 19, 23)
+    # elif n <= 2**64:
+    ## Source: http://miller-rabin.appspot.com/
+    ## I am not yet convinced that this source is reliable.
+    #     witnesses = (2, 325, 9375, 28178, 450775, 9780504, 1795265022)
+    else:
+        witnesses = None
+    return witnesses
 
 
 def primes():
