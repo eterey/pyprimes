@@ -51,11 +51,16 @@ Generating prime numbers
 ------------------------
 
 To generate an unending stream of prime numbers, use the ``primes``
-generator function:
+function with no arguments:
 
     >>> p = primes()
     >>> [next(p) for _ in range(10)]
     [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
+
+Or give start and end arguments for just a subset of the primes:
+
+    >>> list(primes(180, 225))
+    [181, 191, 193, 197, 199, 211, 223]
 
 
 The ``next_prime`` and ``prev_prime`` functions return the next, or
@@ -83,7 +88,7 @@ To test whether an integer is prime or not, use ``is_prime``:
     True
 
 For extremely large values ``is_prime`` may be probabilistic. That is,
-if it reports a number is prime, it may be only *almost certainly* prime,
+if it reports a number is prime, it may be only "almost certainly prime",
 with a very small chance that the number is actually composite. If it
 returns False, the number is certainly composite. For more details on the
 probabilistic nature of primality testing, see the ``probabilistic`` module.
@@ -128,10 +133,10 @@ The pyprimes package also includes the following sub-modules:
     awful:
         Simple but inefficient, slow or otherwise awful algorithms for
         generating primes and testing for primality. This module is
-        provided for pedagogical purposes.
+        provided only for pedagogical purposes.
 
     factor:
-        Factorise numbers into the product of primes.
+        Factorise small numbers into the product of primes.
 
     probabilistic:
         Generate and test for primes using probabilistic methods.
@@ -140,8 +145,8 @@ The pyprimes package also includes the following sub-modules:
         Generate prime numbers using sieving algorithms.
 
     strategic:
-        Various prime generating and testing functions implemented using
-        the Strategy design pattern.
+        Various prime generating and testing functions implemented
+        with the Strategy design pattern.
 
     utilities:
         Assorted utility functions.

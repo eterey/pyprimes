@@ -3,20 +3,22 @@
 =========================================================================
 
 Version 0.2a 2014-09-11
-    * pyprimes now supports Python 2.4 and above.
+    * Python 3.x support.
+    * pyprimes now also works with Python 2.4 through 2.7.
     * Refactored to a package layout instead of a single file.
     * Tests and compatibility layer are documented as private
       implementation details.
+    * Test suite has significantly more coverage.
     * primes() accepts optional start and end values.
     * primes_above() and primes_below() are redundant and removed in
       favour of primes(start, end).
-    * primes() and assorted other functions wrap an optional prime
-      number generator function, so that they can be tested or used with
-      alternative prime-generating algorithms.
-    * Improved documentation for probabilistic algorithms.
+    * Support for generating and testing primes with alternate
+      implementations or algorithms (pyprimes.strategic module).
+    * Much improved documentation for probabilistic algorithms.
     * Primality testing supports probabilistic as well as deterministic
-      tests, that is, "prime/probably prime/not prime".
+      tests, that is, "not prime, certainly prime, probably prime".
     * Added prev_prime() function.
+    * Fast, efficient deterministic primality tests up to 2**64.
 
 Version 0.1.3a 2014-09-11 (not publicly released)
     * Add ability to generate primes between start and end limits.

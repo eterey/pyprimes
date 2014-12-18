@@ -6,8 +6,7 @@ pyprimes -- generate and test prime numbers
 Introduction
 ------------
 
-Compare a variety of algorithms for generating and testing prime numbers
-with the pure-Python module ``pyprimes``.
+pyprimes is a pure-Python package for generating and testing prime numbers.
 
 Prime numbers are those positive integers which are not divisible exactly
 by any number other than itself or one. Generating primes and testing for
@@ -21,11 +20,11 @@ Features of ``pyprimes``:
       Croft Spiral, and Wheel Factorisation.
     - Test whether numbers are prime efficiently.
     - Deterministic and probabilistic primality tests.
-    - Examples of what *not* to do provided, including trial
-      division, Turner's algorithm, and primality testing
-      using a regular expression.
-    - Factorise numbers into the product of prime factors.
-    - Suitable for Python 2.5 through 3.2 from one code base.
+    - Examples of what *not* to do provided, including naive trial
+      division, Turner's algorithm (Euler's sieve), and primality
+      testing using a regular expression.
+    - Factorise small numbers into the product of prime factors.
+    - Suitable for Python 2.4 through 3.x from one code base.
 
 
 Installation
@@ -36,38 +35,43 @@ expanded directory. Run:
 
     $ python setup.py install
 
-to install.
+from your system shell (not the python interpreter) to install.
 
 
 Licence
 -------
 
 pyprimes is licenced under the MIT Licence. See the LICENCE.txt file and the
-header of pyprimes.py.
+header of pyprimes/__init__.py.
 
 
-Self-test and unit-tests
-------------------------
+Test suite
+----------
 
-You can run the module's doctests by executing the file from the commandline.
-On most Linux or UNIX systems, change directories to the directory containing
-the pyprimes.py file, then:
+pyprimes comes with an extensive test suite. Run the pyprimes/tests.py module
+to run the test suite.
 
-    $ chmod u+x pyprimes.py  # this is only needed once
-    $ ./pyprimes.py
+For Python version 2.5 on up, the most convenient way to do this is from your
+system shell:
 
-or:
+    $ python -m pyprimes.test
 
-    $ python pyprimes.py
+To get even more verbose output, pass the -v switch:
 
-If all the doctests pass, no output will be printed. To get verbose output,
-run with the -v switch:
+    $ python -m pyprimes.test -v
 
-    $ python pyprimes.py -v
+The -m switch is not supported by Python 2.4, to run the test suite under
+that version you will have to give the path to the test module and run it
+manually.
 
 
 Known Issues
 ------------
 
-See the CHANGES.txt file for a list of known issues.
+With older versions of Python (2.4 - 2.6), doctests are not run when
+running the test suite. You can run them manually for each individual
+module, e.g.:
+
+    $ python2.6 -m doctest pyprimes/factors.py -v
+
 
