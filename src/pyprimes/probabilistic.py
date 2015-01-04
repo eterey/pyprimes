@@ -174,7 +174,9 @@ class IsProbablePrime(object):
     """
 
     # Table of small primes.
-    primes = (2, 3, 5, 7, 11, 13, 17, 19)
+    primes = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37)
+    # Default number of random Miller-Rabin tests to perform.
+    count = 30
 
     def __init__(self):
         # Allocate instrumentation.
@@ -232,10 +234,12 @@ class IsProbablePrime(object):
         assert n > 1
         # Before doing the randomised Miller-Rabin test, we do a small
         # number of tests using small primes as witnesses, which is
-        # cheaper than the randomised test.
+        # cheaper than the randomised test. This should satisfy all values
+        # below 2**64.
+        assert len(self.primes) >= 12
         return is_miller_rabin_probable_prime(n, self.primes)
 
-    def _randomized_miller_rabin(self, n, count=30):
+    def _randomized_miller_rabin(self, n, count=None):
         """Probabilistic primality test using Miller-Rabin
         with random bases.
 
@@ -268,6 +272,8 @@ class IsProbablePrime(object):
         # We can ignore 1 as a witness, because it always claims that n is
         # a probable prime, regardless of n.
         assert n > 1
+        if count is None:
+            count = self.count
         bases = tuple([random.randint(2, n-1) for _ in range(count)])
         return is_miller_rabin_probable_prime(n, bases)
 
@@ -615,10 +621,14 @@ def _get_miller_rabin_witnesses(n):
     elif n < 3825123056546413051:  # ~3.8 million trillion
         # References: [1], [4]
         witnesses = (2, 3, 5, 7, 11, 13, 17, 19, 23)
-    # elif n <= 2**64:
-    ## Source: http://miller-rabin.appspot.com/
-    ## I am not yet convinced that this source is reliable.
-    #     witnesses = (2, 325, 9375, 28178, 450775, 9780504, 1795265022)
+    elif n <= 2**64:
+        # The first 12 primes make up a set of deterministic witnesses
+        # for all numbers below 2**64.
+        witnesses = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37)
+        # This page: http://miller-rabin.appspot.com/
+        # claims that these make up a minimal set:
+        # witnesses = (2, 325, 9375, 28178, 450775, 9780504, 1795265022)
+        # but until that result is confirmed I'm sticking to the primes.
     else:
         witnesses = None
     return witnesses
