@@ -37,8 +37,8 @@ def filter_between(iterable, start=None, end=None):
     ['a', 'a', 'a', 'b', 'b', 'b']
 
 
-
-    . If ``start`` or ``end``
+    FIXME
+    If ``start`` or ``end``
     are not None, then the iterator silently drops all values until the
     first value that equals or exceeds ``start``, and halts at the first
     value that exceeds ``end``. The ``start`` value is inclusive, the
@@ -145,6 +145,7 @@ except ImportError:
     # Probably Python 2.4. If namedtuple is not available, just use a
     # regular tuple instead.
     def namedtuple(name, fields):
+        # Ignore the arguments and just hope for the best.
         return tuple
 
 

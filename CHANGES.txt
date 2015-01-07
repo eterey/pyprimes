@@ -2,7 +2,7 @@
                            C H A N G E   L O G
 =========================================================================
 
-Version 0.2a 2014-09-11
+Version 0.2a 2015-01-07
     * Python 3.x support.
     * pyprimes now also works with Python 2.4 through 2.7.
     * Refactored to a package layout instead of a single file.

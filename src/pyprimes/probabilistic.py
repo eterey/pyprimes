@@ -29,39 +29,46 @@ flag for the primality of the given argument:
 The interpretation of a return result of 2 will depend on the primality
 test being used, but it generally means that the argument is probably
 prime, although with some (hopefully small) chance of being composite.
-See the specific test for details.
+See the specific function for details.
 
 The recommended probabilistic test is the ``is_probable_prime`` function,
 which uses a combination of deterministic and multiple strong probabilistic
-tests to return a result with a very high degree of confidence.
+tests to return a certain result as often as possible, otherwise a
+probabilistic result with a very high degree of confidence:
 
-Other primality tests are:
+    >>> is_probable_prime(35184372088891)  # Definitely prime.
+    1
+    >>> is_probable_prime(35184372088893)  # Composite 3*31*4493*84203557.
+    0
 
-    fermat(n [, base])
+
+Other primality tests included are:
+
+    is_fermat_probable_prime(n [, base])
         A weak probabilistic test.
 
-        0       Number is definitely non-prime.
-        1       Number is definitely prime.
-        2       Number is a weak probable prime or pseudoprime.
-
-        Returns 0 if n is a weak probable
-        prime to the given base, otherwise False.
-
-    miller_rabin(n [, base])
-        Miller-Rabin primality test, returns True if n is a strong
-        probable prime to the given base, otherwise False.
+        >>> is_fermat_probable_prime(12400009)  # Actually is prime.
+        2
+        >>> is_fermat_probable_prime(12400013)  # Composite 23*443*1217.
+        0
 
 
-Both guarantee no false negatives: if either function returns False, the
-number being tested is certainly composite. However, both are subject to false
-positives: if they return True, the number is only possibly prime.
+    is_miller_rabin_probable_prime(n [, base])
+        A strong probabilistic test.
+
+        >>> is_miller_rabin_probable_prime(14008957)  # Actually is prime.
+        2
+        >>> is_miller_rabin_probable_prime(14008971)  # Composite 3*947*4931.
+        0
 
 
-    >>> is_fermat_probable_prime(12400013)  # composite 23*443*1217
-    0
-    >>> is_miller_rabin_probable_prime(14008971)  # composite 3*947*4931
-    0
+    is_miller_rabin_definite_prime(n)
+        Performs a deterministic set of Miller-Rabin tests.
 
+        >>> is_miller_rabin_definite_prime(282311353)  # Prime.
+        True
+        >>> is_miller_rabin_definite_prime(282311367)  # 3*17*949*5833.
+        False
 
 """
 
@@ -624,6 +631,7 @@ def _get_miller_rabin_witnesses(n):
     elif n <= 2**64:
         # The first 12 primes make up a set of deterministic witnesses
         # for all numbers below 2**64.
+        # References: FIXME
         witnesses = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37)
         # This page: http://miller-rabin.appspot.com/
         # claims that these make up a minimal set:

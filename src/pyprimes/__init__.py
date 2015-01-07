@@ -2,7 +2,7 @@
 
 ##  Package pyprimes.py
 ##
-##  Copyright © 2014 Steven D'Aprano.
+##  Copyright © 2015 Steven D'Aprano.
 ##
 ##  Permission is hereby granted, free of charge, to any person obtaining
 ##  a copy of this software and associated documentation files (the
@@ -64,7 +64,7 @@ Or give start and end arguments for just a subset of the primes:
 
 
 The ``next_prime`` and ``prev_prime`` functions return the next, or
-previous, prime from some given value:
+previous, prime from the given argument:
 
     >>> next_prime(20)
     23
@@ -94,8 +94,9 @@ returns False, the number is certainly composite. For more details on the
 probabilistic nature of primality testing, see the ``probabilistic`` module.
 
 The ``trial_division`` function also returns True for primes and False for
-non-primes, unlike ``is_prime`` it is always an exact test. However, it may
-be slow for large values.
+non-primes, unlike ``is_prime`` it is always an exact test and never
+deterministic. However, it may be very slow and require large amounts of
+memory for very large values.
 
     >>> trial_division(15)
     False
@@ -124,16 +125,19 @@ branch of mathematics.
     prime_partial_sums:
         Yield the running sums of primes less than n.
 
+See the individual functions for further details.
+
 
 Sub-modules
 -----------
 
-The pyprimes package also includes the following sub-modules:
+The ``pyprimes`` package also includes the following public sub-modules:
 
     awful:
         Simple but inefficient, slow or otherwise awful algorithms for
         generating primes and testing for primality. This module is
-        provided only for pedagogical purposes.
+        provided only for pedagogical purposes (mostly as a lesson in
+        what *not* to do).
 
     factor:
         Factorise small numbers into the product of primes.
@@ -177,7 +181,7 @@ from pyprimes.utilities import filter_between
 
 # Module metadata.
 __version__ = "0.2.0a"
-__date__ = "2014-09-11"
+__date__ = "2015-01-07"
 __author__ = "Steven D'Aprano"
 __author_email__ = "steve+python@pearwood.info"
 
@@ -189,10 +193,11 @@ __all__ = ['is_prime', 'MaybeComposite', 'next_prime', 'nprimes',
 
 
 class MaybeComposite(RuntimeWarning):
+    """Warning raised when a primality test is probabilistic."""
     pass
 
 
-# === Prime numbers ===
+# === Generate prime numbers ===
 
 def primes(start=None, end=None):
     """Yield primes, optionally between ``start`` and ``end``.
@@ -336,7 +341,7 @@ def prime_count(n):
     >>> prime_count(30075)
     3251
 
-    The number of primes less than x is approximately n/(ln n - 1).
+    The number of primes less than n is approximately n/(ln n - 1).
     """
     # Values for pi(x) taken from here: http://primes.utm.edu/nthprime/
     # See also:  http://primes.utm.edu/howmany.shtml
