@@ -1,2 +1,6 @@
 include LICENCE.txt
 include CHANGES.txt
+exclude src/pyprimes/carmichael.py
+exclude src/pyprimes/charfunc.py
+exclude src/pyprimes/mersenne.txt
+exclude src/pyprimes/speed.py
