@@ -139,7 +139,7 @@ The ``pyprimes`` package also includes the following public sub-modules:
         provided only for pedagogical purposes (mostly as a lesson in
         what *not* to do).
 
-    factor:
+    factors:
         Factorise small numbers into the product of primes.
 
     probabilistic:
@@ -164,7 +164,7 @@ plus the following private sub-modules:
     tests:
         Unit and regression tests for the package.
 
-The contents of the private modules are subject to change or removal
+The contents of the private sub-modules are subject to change or removal
 without notice.
 
 """
