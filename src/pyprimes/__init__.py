@@ -180,7 +180,7 @@ from pyprimes.utilities import filter_between
 
 
 # Module metadata.
-__version__ = "0.2.0a"
+__version__ = "0.2.1a"
 __date__ = "2015-01-07"
 __author__ = "Steven D'Aprano"
 __author_email__ = "steve+python@pearwood.info"
