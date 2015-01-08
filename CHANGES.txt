@@ -18,6 +18,7 @@ Version 0.2a 2015-01-07
     * Primality testing supports probabilistic as well as deterministic
       tests, that is, "not prime, certainly prime, probably prime".
     * Added prev_prime() function.
+    * Swapped names for factors() and factorise().
     * Fast, efficient deterministic primality tests up to 2**64.
 
 Version 0.1.3a 2014-09-11 (not publicly released)

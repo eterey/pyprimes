@@ -558,39 +558,39 @@ class Factors_Test(unittest.TestCase):
     """Test suite for the factors module."""
 
     def test_factors_basic(self):
-        # Basic test for factors.factors.
-        self.assertEqual(factors.factors(2*7*31*31*101), [2, 7, 31, 31, 101])
+        # Basic test for factors.factorise.
+        self.assertEqual(factors.factorise(2*7*31*31*101), [2, 7, 31, 31, 101])
 
     def test_factors_random(self):
-        # Test the factors.factors function with a random number.
+        # Test the factors.factorise function with a random number.
         numfactors = random.randint(1, 8)
         values = [random.choice(PRIMES) for _ in range(numfactors)]
         values.sort()
         n = product(values)
-        self.assertEqual(factors.factors(n), values)
+        self.assertEqual(factors.factorise(n), values)
 
     def test_factors_special(self):
-        # Test the factors.factors function with special values.
-        self.assertEqual(factors.factors(0), [0])
-        self.assertEqual(factors.factors(1), [1])
-        self.assertEqual(factors.factors(-1), [-1])
+        # Test the factors.factorise function with special values.
+        self.assertEqual(factors.factorise(0), [0])
+        self.assertEqual(factors.factorise(1), [1])
+        self.assertEqual(factors.factorise(-1), [-1])
 
     def test_factors_negative(self):
-        # Test the factors.factors function with negative values.
-        f = factors.factors
+        # Test the factors.factorise function with negative values.
+        f = factors.factorise
         for n in range(40, 50):
             assert n != -1
             self.assertEqual(f(-n), [-1] + f(n))
 
-    def test_factorise(self):
+    def test_factors(self):
         values = [2, 3, 3, 3, 3, 29, 29, 31, 101, 137]
         n = product(values)
         expected = [(2, 1), (3, 4), (29, 2), (31, 1), (101, 1), (137, 1)]
-        actual = list(factors.factorise(n))
+        actual = list(factors.factors(n))
         self.assertEqual(actual, expected)
 
-    def test_factorise_extra(self):
-        # Test factorise with _EXTRA_CHECKS.
+    def test_factors_extra(self):
+        # Test factorise with _EXTRA_CHECKS enabled.
         if __debug__:
             self.assertTrue(hasattr(factors, '_EXTRA_CHECKS'))
             # Monkey-patch the factors module to ensure the extra checks
@@ -604,7 +604,7 @@ class Factors_Test(unittest.TestCase):
             n = product(values)
             expected = [(2, 3), (3, 1), (17, 2), (29, 1), (31, 1),
                         (61, 2), (103, 1), (227, 2)]
-            actual = list(factors.factorise(n))
+            actual = list(factors.factors(n))
             self.assertEqual(actual, expected)
         finally:
             if __debug__:

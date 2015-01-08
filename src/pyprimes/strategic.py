@@ -43,6 +43,8 @@ usually named either ``strategy`` or ``prover``.
 
 from __future__ import division
 
+from pyprimes.compat23 import next
+
 
 __all__ = ['is_prime', 'next_prime', 'prev_prime', 'primes',
            'trial_division',

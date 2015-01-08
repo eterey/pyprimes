@@ -7,27 +7,27 @@
 
 """Return or yield the prime factors of an integer.
 
-The ``factorise(n)`` generator yields distinct prime factors and the
+The ``factors(n)`` generator yields distinct prime factors and the
 number of times they are repeated:
 
->>> list(factorise(37*37*109))
+>>> list(factors(37*37*109))
 [(37, 2), (109, 1)]
 
-The ``factors(n)`` function returns a list of prime factors:
+The ``factorise(n)`` function returns a list of prime factors:
 
->>> factors(37*37*109)
+>>> factorise(37*37*109)
 [37, 37, 109]
 
 
 To get a list of distinct factors:
 
->>> [p for p,x in factorise(37*37*109)]
+>>> [p for p,x in factors(37*37*109)]
 [37, 109]
 
 
 To efficiently calculate ω(n), the number of distinct factors:
 
->>> sum(1 for x in factorise(37*37*109))
+>>> sum(1 for x in factors(37*37*109))
 2
 
 For more information, see:
@@ -47,21 +47,21 @@ if __debug__:
     _EXTRA_CHECKS = False
 
 
-def factors(n):
-    """factors(integer) -> [list of factors]
+def factorise(n):
+    """factorise(integer) -> [list of factors]
 
     Returns a list of the (mostly) prime factors of integer n. For negative
     integers, -1 is included as a factor. If n is 0, 1 or -1, [n] is
     returned as the only factor. Otherwise all the factors will be prime.
 
-    >>> factors(-693)
+    >>> factorise(-693)
     [-1, 3, 3, 7, 11]
-    >>> factors(55614)
+    >>> factorise(55614)
     [2, 3, 13, 23, 31]
 
     """
     result = []
-    for p, count in factorise(n):
+    for p, count in factors(n):
         result.extend([p]*count)
     if __debug__:
         # The following test only occurs if assertions are on.
@@ -73,10 +73,10 @@ def factors(n):
     return result
 
 
-def factorise(n):
-    """factorise(integer) -> yield factors of integer lazily
+def factors(n):
+    """factors(integer) -> yield factors of integer lazily
 
-    >>> list(factorise(3*7*7*7*11))
+    >>> list(factors(3*7*7*7*11))
     [(3, 1), (7, 3), (11, 1)]
 
     Yields tuples of (factor, count) where each factor is unique and usually
