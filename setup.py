@@ -31,7 +31,7 @@ setup(
     description = "Generate and test for prime numbers.",
     long_description = """\
 The pyprimes package offers a variety of algorithms for generating prime
-numbers and fast primality test, written in pure Python.
+numbers and fast primality tests, written in pure Python.
 
 Prime numbers are those positive integers which are not divisible exactly
 by any number other than itself or one. Generating primes and testing for
@@ -49,7 +49,7 @@ as of great practical importance for encrypting data.
       division, Turner's algorithm, and primality testing using a
       regular expression.
     - Factorise small numbers into the product of prime factors.
-    - Suitable for Python 2.4 through 3.2 from one code base.
+    - Suitable for Python 2.4 through 3.x from one code base.
 
 """,
     license = 'MIT',  # apologies for the American spelling
@@ -60,6 +60,7 @@ as of great practical importance for encrypting data.
         "Programming Language :: Python :: 2.5",
         "Programming Language :: Python :: 2.6",
         "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.0",
         "Programming Language :: Python :: 3.1",
         "Programming Language :: Python :: 3.2",
