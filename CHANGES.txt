@@ -2,6 +2,12 @@
                            C H A N G E   L O G
 =========================================================================
 
+Version ????
+    * ...
+
+Version 0.2.1a 2015-01-08
+    * Version bump to satisfy PyPI packaging difficulties.
+
 Version 0.2a 2015-01-07
     * Python 3.x support.
     * pyprimes now also works with Python 2.4 through 2.7.
