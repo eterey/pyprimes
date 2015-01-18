@@ -815,8 +815,19 @@ class StrategicTest:  ###### FIXME     (unittest.TestCase, PrimesMixin):
         self.assertRaises(ValueError, pyprimes.prev_prime, 2)
 
 
+def skip_if_too_expensive(testcase):
+    """ Decorator to skip a testcase if deemed too expensive for this run. """
+    want_expensive = '--do-expensive-tests' in sys.argv
+    if want_expensive:
+        # import pdb ; pdb.set_trace()
+        do_func = testcase
+    else:
+        do_func = skip("Too expensive for default run")(testcase)
+    return do_func
+
+
 class ExpensiveTests(unittest.TestCase):
-    """Suite containing very expensive tests.
+    """Test cases that consume a lot of CPU time.
 
     By default, these tests are not run. To run them, pass:
 
@@ -826,15 +837,16 @@ class ExpensiveTests(unittest.TestCase):
 
     BE WARNED THAT THESE TESTS MAY TAKE MANY HOURS (DAYS?) TO RUN.
     """
+
+    @skip_if_too_expensive
     def test_prime_count_tens_big(self):
         # See also PyPrimesTest.test_prime_count_tens.
-        assert do_expensive_tests
         self.assertEqual(pyprimes.prime_count(10**7), 664579)
         self.assertEqual(pyprimes.prime_count(10**8), 5761455)
 
+    @skip_if_too_expensive
     def test_bertelsen(self):
         # http://mathworld.wolfram.com/BertelsensNumber.html
-        assert do_expensive_tests
         result = pyprimes.prime_count(10**9)
         self.assertNotEqual(result, 50847478,
             "prime_count returns the erronous Bertelsen's Number")
@@ -869,18 +881,11 @@ class RegressionTests(unittest.TestCase):
         self.assertEqual(pyprimes.prev_prime(3), 2)
 
 
-
 if __name__ == '__main__':
-    # Hack to support conditional testing versions before Python 2.7.
-    # Since we don't have the ability to skip tests, we instead put all
-    # the skippable tests into one test suite, and delete it before
-    # running the unit tests.
-    do_expensive_tests = '--do-expensive-tests' in sys.argv
-    if do_expensive_tests:
+    if '--do-expensive-tests' in sys.argv:
+        # By this point the functions to skip have all been decorated.
         # Remove it from sys.argv, otherwise unittest will complain.
         sys.argv.remove('--do-expensive-tests')
-    else:
-        del ExpensiveTests
     unittest.main()
 
 
@@ -891,7 +896,3 @@ if __name__ == '__main__':
 # => N-1 = 2**2 * 3**4 * 5**2 * 641 * 12107 * M
 # => M+1 = 2**4 * 3**2 * 307 * 4817 * K
 # => K-1 = 2 * 37 * 53 * ...
-
-
-
-
