@@ -27,7 +27,10 @@ setup(
     author = __author__,
     author_email = __author_email__,
     url = 'http://code.google.com/p/pyprimes/',
-    keywords = "prime primes primality math maths algorithm fermat miller-rabin".split(),
+    keywords = sorted([
+        'algorithm', 'eratosthenes', 'factors', 'fermat', 'math', 'maths',
+        'miller-rabin', 'primality', 'prime', 'primes', 'sieve',
+        ]),
     description = "Generate and test for prime numbers.",
     long_description = """\
 The pyprimes package offers a variety of algorithms for generating prime
