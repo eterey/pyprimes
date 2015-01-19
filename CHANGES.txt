@@ -3,7 +3,7 @@
 =========================================================================
 
 Version 0.2.2a 2015-01-19
-    * ...
+    * Improved handling of expensive tests (thanks to Ben Finney)
 
 Version 0.2.1a 2015-01-08
     * Version bump to satisfy PyPI packaging difficulties.
