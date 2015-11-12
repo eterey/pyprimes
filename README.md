@@ -1,5 +1,5 @@
 ===========================================
-pyprimes -- generate and test prime numbers
+pyprimes — generate and test prime numbers
 ===========================================
 
 
@@ -15,16 +15,16 @@ testing whether or not a given number is prime.
 
 Features include:
 
-    - Produce prime numbers lazily, on demand.
-    - Effective, fast algorithms including Sieve of Eratosthenes,
-      Croft Spiral, and Wheel Factorisation.
-    - Test whether numbers are prime efficiently.
-    - Deterministic and probabilistic primality tests.
-    - Examples of what *not* to do provided, including naive trial
-      division, Turner's algorithm (Euler's sieve), and primality
-      testing using a regular expression.
-    - Factorise small numbers into the product of prime factors.
-    - Suitable for Python 2.4 through 3.x from one code base.
+- Produce prime numbers lazily, on demand.
+- Effective, fast algorithms including Sieve of Eratosthenes,
+  Croft Spiral, and Wheel Factorisation.
+- Test whether numbers are prime efficiently.
+- Deterministic and probabilistic primality tests.
+- Examples of what *not* to do provided, including naive trial
+  division, Turner's algorithm (Euler's sieve), and primality
+  testing using a regular expression.
+- Factorise small numbers into the product of prime factors.
+- Suitable for Python 2.4 through 3.x from one code base.
 
 
 Installation
@@ -41,8 +41,8 @@ from your system shell (not the python interpreter) to install.
 Licence
 -------
 
-pyprimes is licenced under the MIT Licence. See the LICENCE.txt file and the
-header of pyprimes/__init__.py.
+pyprimes is licenced under the MIT Licence. See the ``LICENCE.txt`` file and the
+header of ``pyprimes/__init__.py``.
 
 
 Test suite
@@ -72,22 +72,22 @@ manually. E.g. this may work on some systems:
 Known Issues and Bugs
 ---------------------
 
-(1) The API of this package is not yet stable. That means that the names of
-    functions, the arguments that they take, values returned, etc. may
-    change without warning in the future.
+1) The API of this package is not yet stable. That means that the names of
+   functions, the arguments that they take, values returned, etc. may
+   change without warning in the future.
 
-(2) With older versions of Python (2.4 - 2.6), doctests are not run when
-    running the test suite. You can run them manually for each individual
-    module, e.g.:
+2) With older versions of Python (2.4 - 2.6), doctests are not run when
+   running the test suite. You can run them manually for each individual
+   module, e.g.:
 
-        python2.6 -m doctest pyprimes/factors.py -v
+    python2.6 -m doctest pyprimes/factors.py -v
 
-(3) In general, prime-related functions expect their numeric arguments to
-    be integers, but don't perform any type-checking. If you pass a float,
-    Decimal, Fraction or other non-int (or long) value, behaviour is
-    undefined.
+3) In general, prime-related functions expect their numeric arguments to
+   be integers, but don't perform any type-checking. If you pass a float,
+   Decimal, Fraction or other non-int (or long) value, behaviour is
+   undefined.
 
-(4) The package is currently rather inconsistent in whether it uses
-    floating point sqrt or integer-valued sqrt. This should be considered
-    a known bug.
+4) The package is currently rather inconsistent in whether it uses
+   floating point sqrt or integer-valued sqrt. This should be considered
+   a known bug.
 
